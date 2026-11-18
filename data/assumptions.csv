@@ -1,0 +1,47 @@
+id,section,parameter,value,low,high,unit,type,source_id,rationale
+FX,Macro,SAR per USD,3.75,3.75,3.75,SAR/USD,Reported,S14,Fixed peg; halala and US cent figures in S14 imply exactly 3.75
+CPI,Macro,Long-run US inflation,0.023,0.020,0.030,per yr,Assumed,,Used only to restate flat nominal tariffs in real terms
+CAPEX,Tech,Capex (2025-26 vintage KSA utility PV),520,450,650,USD/kWac,Derived,S18;S20;S23,Triangulated: disclosed costs of USD 550/kWac (Al Sadawi 2025) and USD 582/kWac (Haden/Muwayh/Khushaybi 2024); bottom-up build at 2026 module prices
+SAKAKA_GWH,Tech,Sakaka measured output 2022,932,932,932,GWh,Reported,S41,Calibrates PVGIS yield to delivered AC energy
+SAKAKA_MW,Tech,Sakaka capacity,300,300,300,MWac,Reported,S01,
+YIELD_CAL_RANGE,Tech,Yield calibration factor range,1.209,1.15,1.25,kWh/kWac per kWh/kWp,Derived,S35;S41,Point value derived in model from Sakaka 2022 output over PVGIS tracked yield; range covers DC/AC and loss differences across plants
+DEGR,Tech,Annual output degradation,0.004,0.003,0.006,per yr,Assumed,,n-type bifacial module warranties
+OPEX,Tech,All-in O&M incl. insurance,8.0,6.0,12.0,USD/kWac-yr,Assumed,S21,GW-scale O&M below IRENA's non-OECD benchmark of USD 11.23/kWdc-yr
+OPEX_ESC,Tech,O&M escalation,0.02,0.015,0.03,per yr,Assumed,,
+PPA_YEARS,Tech,PPA term (SPPC),25,25,25,yr,Reported,S09;S18,No merchant tail in base case
+DCAC,Tech,DC/AC ratio,1.30,1.20,1.40,ratio,Assumed,,Only used to put IRENA (per kWdc) and KSA (per kWac) on one basis
+BASE_RATE,Finance,USD long-term swap rate,0.040,0.035,0.045,per yr,Assumed,,No free swap curve; mid-2026 level assumption
+MARGIN,Finance,Senior debt margin (KSA IPP),0.0125,0.0100,0.0175,per yr,Assumed,,Sovereign-backed offtaker; deep regional and ECA bank market
+TENOR,Finance,Debt tenor,22,18,25,yr,Assumed,,Inside the 25-year PPA
+DSCR,Finance,Minimum DSCR (sculpting),1.20,1.15,1.30,x,Assumed,,Contracted solar with sovereign-backed buyer
+GEAR_MAX,Finance,Maximum gearing,0.80,0.70,0.85,share of capex,Derived,S16;S20,Observed 72% (15 GW portfolio) and 78% (Haden/Muwayh/Khushaybi)
+TAX,Finance,Effective tax rate on profit,0.10,0.025,0.20,share,Assumed,S22,Blend of 20% corporate tax on foreign shareholders and 2.5% Zakat on Saudi shareholders
+DEP_YEARS,Finance,Tax depreciation life,25,20,30,yr,Assumed,,Straight line over the PPA
+EQ_HURDLE,Finance,Sponsor equity hurdle (nominal),0.09,0.07,0.12,per yr,Assumed,,Range of what strategic sponsors accept on contracted GCC assets
+CRP_KSA,Finance,Country risk premium Saudi Arabia (Aa3),0.0078,0.0078,0.0078,share,Reported,S22,
+CRP_OMN,Finance,Country risk premium Oman (Baa3),0.0285,0.0285,0.0285,share,Reported,S22,
+DS_KSA,Finance,Default spread Saudi Arabia,0.0051,0.0051,0.0051,share,Reported,S22,
+DS_OMN,Finance,Default spread Oman,0.0187,0.0187,0.0187,share,Reported,S22,
+TAX_OMN,Finance,Oman corporate tax rate,0.15,0.15,0.15,share,Reported,S22,
+IRENA_TIC,Benchmark,IRENA global utility PV installed cost 2025,667,667,667,USD/kWdc,Reported,S21,
+IRENA_CF,Benchmark,IRENA global capacity factor 2025,0.165,0.165,0.165,AC output per kWdc,Reported,S21,
+IRENA_OM,Benchmark,IRENA global O&M 2025,12.2,12.2,12.2,USD/kWdc-yr,Reported,S21,
+IRENA_LCOE,Benchmark,IRENA global LCOE 2025,44,44,44,USD/MWh (real),Reported,S21,
+IRENA_LIFE,Benchmark,Economic life used to back out IRENA's WACC,25,25,30,yr,Assumed,,Methodology annex not restated in the 2025 text
+IRENA_TIC_KSA,Benchmark,IRENA Saudi installed cost 2025,725,725,725,USD/kWdc,Reported,S21,Projects commissioned in 2025 (bid at 2022-23 module prices)
+IRENA_LCOE_KSA,Benchmark,IRENA Saudi LCOE 2025,40,40,40,USD/MWh (real),Reported,S21,
+MODULE_PRICE,Capex build,TOPCon module price FOB China,0.107,0.100,0.120,USD/Wdc,Reported,S23;S24,OPIS CMM Oct 2026; Mar 2026 high of 0.120
+CB_FREIGHT,Capex build,Freight and duties on modules,10,5,20,USD/kWac,Assumed,,
+CB_TRACKER,Capex build,Single-axis trackers,70,55,90,USD/kWdc,Assumed,,
+CB_INVERTER,Capex build,Inverters and MV stations,40,30,55,USD/kWac,Assumed,,
+CB_BOS,Capex build,Electrical BoS and civil works,90,70,120,USD/kWac,Assumed,,
+CB_EPC,Capex build,Installation and EPC margin,70,55,90,USD/kWac,Assumed,,
+CB_SOFT,Capex build,Development and owner's costs,25,15,40,USD/kWac,Assumed,,Saudi soft costs are low (IRENA: 10% of TIC)
+CB_FIN,Capex build,Financing fees and interest during construction,25,15,40,USD/kWac,Assumed,,
+OMN_CAPEX,Oman,Capex (500 MW scale),570,520,650,USD/kWac,Derived,S25,Ibri III ~USD 300m for 500 MW PV + 100 MWh BESS; less ~USD 20m for the battery; sub-GW scale
+OMN_PPA,Oman,PPA term (Nama PWP),20,15,25,yr,Assumed,S26,Nama PWP does not publish PPA tariffs or terms for its solar IPPs
+OMN_GAS,Oman,Gas price to power sector (2026),4.15,3.0,5.5,USD/MMBtu,Derived,S31,USD 3.00 in 2015 escalated 3% a year (extrapolation; current price not published)
+OMN_HR,Oman,Marginal CCGT heat rate,7.0,6.5,8.0,MMBtu/MWh,Assumed,,
+BRENT,Oman,Brent 2026,86,86,115,USD/bbl,Reported,S32,World Bank baseline; severe-scenario high
+LNG_SLOPE,Oman,LNG price as share of Brent,0.12,0.11,0.14,share,Assumed,,Typical oil-indexed Asian LNG slope
+LNG_NETBACK_COST,Oman,Liquefaction and shipping deduction,2.5,2.0,3.5,USD/MMBtu,Assumed,,Converts delivered LNG price to an export netback for the opportunity-cost view
