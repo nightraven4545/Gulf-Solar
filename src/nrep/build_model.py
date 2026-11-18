@@ -269,6 +269,7 @@ def build(out=OUT):
     vin_bot = vin_top + 4
     bk.name("CX_VIN", f"Capex!$A${vin_top}:$A${vin_bot}")
     bk.name("CX_AVG", f"Capex!$B${vin_top}:$B${vin_bot}")
+    bk.name("CX_VIN_TABLE", f"Capex!$A${vin_top}:$C${vin_bot}")
 
     r = vin_bot + 2
     put(ws, f"A{r}", "Bottom-up build at 2026 prices", bold=True)
