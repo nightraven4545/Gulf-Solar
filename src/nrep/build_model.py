@@ -211,8 +211,36 @@ def build(out=OUT):
                 c.number_format = NUM0
         put(ws, f"X{r}", f'=IF(I{r}<>"",I{r},IF(J{r}<>"",J{r}/FX_SAR,IF(K{r}<>"",K{r}*100/FX_SAR,"")))',
             fmt=CENTS)
+        put(ws, f"Y{r}", t["lead_sponsor"])
+        put(ws, f"Z{r}", f'=IF(AND(U{r}="Y",X{r}<>""),H{r}*X{r},0)', fmt=NUM0)
+        put(ws, f"AA{r}", f'=IF(AND(U{r}="Y",X{r}<>""),H{r},0)', fmt=NUM0)
     last_tr = 4 + len(tracker)
+    for c, label in (("Y", "Lead sponsor"), ("Z", "MW x tariff (analysed)"), ("AA", "MW with tariff (analysed)")):
+        header(ws, 4, [label], start=ws[f"{c}4"].column)
+        ws.column_dimensions[c].width = 16
     ws.freeze_panes = "C5"
+    rt = lambda c: f"Tracker!${c}$5:${c}${last_tr}"
+    awarded = f'{rt("C")},"KSA",{rt("G")},"PV",{rt("L")},"<>pending"'
+    r = last_tr + 3
+    put(ws, f"A{r}", "Sponsor league: Saudi utility PV awards (both tracks)", bold=True)
+    header(ws, r + 1, ["Lead sponsor", "GW awarded", "Projects", "MW-weighted tariff (USc/kWh, disclosed)"])
+    sponsors = sorted({t["lead_sponsor"] for t in tracker if t["country"] == "KSA" and t["lead_sponsor"]},
+                      key=lambda x: -sum(float(t["mw_ac"]) for t in tracker if t["lead_sponsor"] == x and t["country"] == "KSA"))
+    sp_top = r + 2
+    for i, sp in enumerate(sponsors):
+        rr = sp_top + i
+        put(ws, f"A{rr}", sp)
+        put(ws, f"B{rr}", f'=SUMIFS({rt("H")},{awarded},{rt("Y")},A{rr})/1000', fmt="0.0")
+        put(ws, f"C{rr}", f'=COUNTIFS({awarded},{rt("Y")},A{rr})', fmt="0")
+        put(ws, f"D{rr}", f'=IFERROR(SUMIFS({rt("Z")},{rt("C")},"KSA",{rt("Y")},A{rr})/SUMIFS({rt("AA")},{rt("C")},"KSA",{rt("Y")},A{rr}),"")',
+            fmt=CENTS)
+    bk.name("SPONSOR_TABLE", f"Tracker!$A${sp_top}:$D${sp_top + len(sponsors) - 1}")
+    put(ws, f"A{sp_top + len(sponsors)}", "Total", bold=True)
+    put(ws, f"B{sp_top + len(sponsors)}", f"=SUM(B{sp_top}:B{sp_top + len(sponsors) - 1})", fmt="0.0", bold=True)
+    bk.name("KSA_PV_AWARDED_GW", f"Tracker!$B${sp_top + len(sponsors)}")
+    bk.name("AVG_TARIFF_KSA", f"Tracker!$D${sp_top + len(sponsors)}")
+    put(ws, f"D{sp_top + len(sponsors)}", f'=SUMIFS({rt("Z")},{rt("C")},"KSA")/SUMIFS({rt("AA")},{rt("C")},"KSA")',
+        fmt=CENTS, bold=True)
 
     # Yield ------------------------------------------------------------
     ws = bk.sheet("Yield", "Site resource: PVGIS 5.3 (SARAH3) horizontal single-axis tracking, calibrated to Sakaka's 2022 output",
@@ -290,6 +318,7 @@ def build(out=OUT):
         put(ws, f"F{rr}", "=" + lo, fmt=NUM0)
         put(ws, f"G{rr}", "=" + hi, fmt=NUM0)
     tot = top + len(items)
+    cb_top, cb_tot = top, tot
     put(ws, f"A{tot}", "Total", bold=True)
     for c in "EFG":
         put(ws, f"{c}{tot}", f"=SUM({c}{top}:{c}{tot - 1})", fmt=NUM0, fill=FILL_OUT, bold=True)
@@ -665,6 +694,171 @@ def build(out=OUT):
     bk.name("OMN_AVOIDED_GAS", "Oman!$B$48")
     bk.name("OMN_AVOIDED_LNG", "Oman!$B$49")
 
+    # Impact -----------------------------------------------------------
+    ws = bk.sheet("Impact", "Economic impact: what solar is worth to Saudi Arabia, and to Oman",
+                  "Solar output x heat rate of the displaced plant / energy per barrel x share of output that displaces liquids.",
+                  widths=[52, 18, 18, 60])
+    header(ws, 4, ["Saudi Arabia", "Operating solar (Aug 2026)", "Contracted utility PV", "Logic"])
+    imp = [
+        ("Capacity (GW)", "=KSA_SOLAR_INSTALLED", "=KSA_PV_AWARDED_GW", "0.0", "KAPSARC; tracker total"),
+        ("Output (TWh/yr)", "={c}5*E_REF/1000", "={c}5*E_REF/1000", "0.0", "GW x average Saudi energy per kWac"),
+        ("Oil displaced (million bbl/yr)", "={c}6*HR_OIL/BBL_MMBTU*LIQ_SHARE", None, "0.0", "TWh x MMBtu/MWh / MMBtu/bbl x liquids share"),
+        ("Oil displaced (kb/d)", "={c}7*1000/365", None, NUM0, ""),
+        ("Share of 2025 direct crude burn", "={c}8/CRUDE_BURN_2025", None, PCT, "S&P Global: 440 kb/d in 2025"),
+        ("Value of that oil at Brent less discount (USD bn/yr)", "={c}7*(BRENT-OIL_DISC)/1000", None, "0.0", "World Bank 2026 baseline"),
+        ("Value at the severe Hormuz Brent (USD bn/yr)", "={c}7*(BRENT_HI-OIL_DISC)/1000", None, "0.0", "World Bank severe case"),
+        ("Tariff payments (USD bn/yr)", "={c}6*AVG_TARIFF_KSA/100", None, "0.00", "TWh x MW-weighted Saudi tariff"),
+        ("Oil value per dollar of tariff (x)", "={c}10/{c}12", None, "0.0x", ""),
+        ("CO2 avoided (Mt/yr)", "={c}7*CO2_BBL", None, "0.0", "0.43 tCO2 per barrel"),
+    ]
+    for i, (label, f, f2, fmt, note) in enumerate(imp):
+        rr = 5 + i
+        put(ws, f"A{rr}", label)
+        for c in "BC":
+            fx = (f2 if f2 and c == "C" else f).format(c=c)
+            put(ws, f"{c}{rr}", fx, fmt=fmt, fill=FILL_OUT if rr in (8, 10, 13) else None)
+        put(ws, f"D{rr}", note, F_NOTE)
+    names = ["GW", "TWH", "MBBL", "KBD", "SHARE", "VALUE", "VALUE_HI", "COST", "RATIO", "CO2"]
+    for i, n in enumerate(names):
+        bk.name(f"IMP_OP_{n}", f"Impact!$B${5 + i}")
+        bk.name(f"IMP_CT_{n}", f"Impact!$C${5 + i}")
+    header(ws, 17, ["Oman (Nama PWP plan)", "2030", "2031", "Logic"])
+    omn_imp = [
+        ("Solar output (TWh/yr)", "=OMN_SOLAR_TWH_2030", "=OMN_SOLAR_TWH_2031", "0.0", "PWP 7-Year Statement 2025-2031"),
+        ("Gas saved (million MMBtu/yr)", "={c}18*OMN_HR", None, NUM0, "TWh x CCGT heat rate"),
+        ("Value at the regulated gas price (USD m/yr)", "={c}19*OMN_GAS", None, NUM0, ""),
+        ("Value at the LNG export netback (USD m/yr)", "={c}19*(BRENT*LNG_SLOPE-LNG_NETBACK_COST)", None, NUM0, ""),
+        ("Saving from moves 1-3 on Oman's solar (USD m/yr)", "={c}18*(OMN_CASE1-OMN_CASE3)*10", None, NUM0,
+         "TWh x USc/kWh saved x 10 = USD m"),
+        ("Saving per 0.1 USc/kWh of tariff (USD m/yr)", "={c}18", None, NUM0, "0.1 USc on 1 TWh = USD 1m"),
+    ]
+    for i, (label, f, f2, fmt, note) in enumerate(omn_imp):
+        rr = 18 + i
+        put(ws, f"A{rr}", label)
+        for c in "BC":
+            fx = (f2 if f2 and c == "C" else f).format(c=c)
+            put(ws, f"{c}{rr}", fx, fmt=fmt, fill=FILL_OUT if rr in (20, 21, 22) else None)
+        put(ws, f"D{rr}", note, F_NOTE)
+    for i, n in enumerate(["TWH", "MMBTU", "GAS", "LNG", "MOVES", "PER01"]):
+        bk.name(f"OMN_IMP_{n}_2031", f"Impact!$C${18 + i}")
+        bk.name(f"OMN_IMP_{n}_2030", f"Impact!$B${18 + i}")
+
+    # Value_chain ------------------------------------------------------
+    ws = bk.sheet("Value_chain", "Value chain: where Najran's tariff goes, what has to be true, and how long it takes",
+                  "Cost stack for Najran at base capex. Cost before financing = lifetime capex and O&M over lifetime energy, "
+                  "with no return and no tax; financing and tax are what the hurdle WACC adds.",
+                  widths=[40, 14, 14, 14, 14, 14, 14, 50])
+    put(ws, "A4", "Lifetime energy (kWh/kWac)")
+    put(ws, "B4", "=E_NAJRAN*(1-(1-DEGR)^PPA_YEARS)/DEGR", fmt=NUM0)
+    put(ws, "A5", "Lifetime O&M (USD/kWac)")
+    put(ws, "B5", "=OPEX*((1+OPEX_ESC)^PPA_YEARS-1)/OPEX_ESC", fmt=NUM0)
+    put(ws, "A6", "Required tariff at the hurdle WACC, before tax (USc)")
+    pe, po = pvf("WACC_KSA", "PPA_YEARS", "-DEGR"), pvf("WACC_KSA", "PPA_YEARS", "OPEX_ESC")
+    put(ws, "B6", f"=100*(CAPEX+OPEX*{po})/(E_NAJRAN*{pe})", fmt=CENTS)
+    header(ws, 8, ["Najran cost stack", "USc/kWh", "Share", "", "", "", "", "Who captures it"])
+    who = {r["segment"]: f'{r["who"]}: {r["example"]} ({r["source_id"]})' for r in load("value_chain.csv")}
+    stack = [(label, f"=100*Capex!E{cb_top + i}*CAPEX/Capex!E{cb_tot}/$B$4",
+              who["Modules"] if i == 0 else (who["EPC"] if i == 5 else "Equipment and service suppliers"))
+             for i, (label, _) in enumerate(items)]
+    stack += [("O&M (25 years)", "=100*$B$5/$B$4", "Plant operator, often a sponsor affiliate"),
+              ("Return on capital at the hurdle WACC", "=$B$6-100*(CAPEX+$B$5)/$B$4", who["Debt"] + " | " + who["Equity"]),
+              ("Tax and Zakat", f"={sens['Base']}-$B$6", "The state (ZATCA)")]
+    vc_top = 9
+    for i, (label, f, w) in enumerate(stack):
+        rr = vc_top + i
+        put(ws, f"A{rr}", label)
+        put(ws, f"B{rr}", f, fmt="0.000", fill=FILL_OUT if i >= len(items) else None)
+        put(ws, f"C{rr}", f"=B{rr}/$B${vc_top + len(stack)}", fmt=PCT)
+        put(ws, f"H{rr}", w, F_NOTE)
+    vc_tot = vc_top + len(stack)
+    put(ws, f"A{vc_tot}", "Required tariff at the hurdle (sum)", bold=True)
+    put(ws, f"B{vc_tot}", f"=SUM(B{vc_top}:B{vc_tot - 1})", fmt=CENTS, fill=FILL_OUT, bold=True)
+    put(ws, f"A{vc_tot + 1}", "Cost before financing and tax (capex + O&M)")
+    put(ws, f"B{vc_tot + 1}", f"=SUM(B{vc_top}:B{vc_top + len(items)})", fmt=CENTS, fill=FILL_OUT)
+    put(ws, f"A{vc_tot + 2}", "Najran awarded tariff")
+    put(ws, f"B{vc_tot + 2}", "=T_NAJRAN", F_LINK, CENTS)
+    put(ws, f"A{vc_tot + 3}", "Left for financing and tax at the bid")
+    put(ws, f"B{vc_tot + 3}", f"=B{vc_tot + 2}-B{vc_tot + 1}", fmt=CENTS, fill=FILL_OUT)
+    bk.name("VC_STACK", f"Value_chain!$A${vc_top}:$C${vc_tot - 1}")
+    bk.name("VC_TOTAL", f"Value_chain!$B${vc_tot}")
+    bk.name("VC_PRE_FIN", f"Value_chain!$B${vc_tot + 1}")
+    bk.name("VC_LEFT", f"Value_chain!$B${vc_tot + 3}")
+
+    r = vc_tot + 6
+    put(ws, f"A{r}", "What has to be true: capex Najran's tariff supports (USD/kWac), by plant life (rows) and WACC (columns)",
+        bold=True)
+    wh = r + 1
+    put(ws, f"A{wh}", "Life (yrs) \\ WACC")
+    for k, w in enumerate(["0.03", "0.04", "0.05", "=WACC_KSA", "0.07"]):
+        put(ws, f"{col(2 + k)}{wh}", float(w) if w[0] != "=" else w, F_INPUT if w[0] != "=" else F_LINK, PCT)
+    for j, life in enumerate([25, 30, 35]):
+        rr = wh + 1 + j
+        put(ws, f"A{rr}", life, F_INPUT, "0")
+        for k in range(5):
+            c = col(2 + k)
+            w = f"{c}${wh}"
+            pe_, po_ = pvf(w, f"$A{rr}", "-DEGR"), pvf(w, f"$A{rr}", "OPEX_ESC")
+            sh = f"(TAX_KSA*{annuity(w, 'DEP_YEARS')}/DEP_YEARS)"
+            put(ws, f"{c}{rr}", f"=(1-TAX_KSA)*(T_NAJRAN/100*E_NAJRAN*{pe_}-OPEX*{po_})/(1-{sh})", fmt=NUM0)
+    bk.name("WHTBT", f"Value_chain!$A${wh}:$F${wh + 3}")
+    from openpyxl.formatting.rule import CellIsRule
+    ws.conditional_formatting.add(f"B{wh + 1}:F{wh + 3}",
+                                  CellIsRule(operator="greaterThanOrEqual", formula=["CX_DISCLOSED_2025"], fill=FILL_OUT))
+    put(ws, f"A{wh + 4}", "Green = supports the 2025 disclosed cost. Plant life beyond 25 years assumes the PPA is extended at the same tariff.",
+        F_NOTE)
+
+    r = wh + 7
+    put(ws, f"A{r}", "Timeline: from tender to first power", bold=True)
+    header(ws, r + 1, ["Project", "Track", "Milestone", "Date", "Month index", "Months from first step", "Source"])
+    ms = load("milestones.csv")
+    ms_top = r + 2
+    ms_bot = ms_top + len(ms) - 1
+    for i, mrow in enumerate(ms):
+        rr = ms_top + i
+        put(ws, f"A{rr}", mrow["project"])
+        put(ws, f"B{rr}", mrow["track"])
+        put(ws, f"C{rr}", mrow["milestone"])
+        put(ws, f"D{rr}", mrow["date"], F_INPUT)
+        put(ws, f"E{rr}", f"=VALUE(LEFT(D{rr},4))*12+VALUE(MID(D{rr},6,2))", fmt="0")
+        put(ws, f"F{rr}", f"=E{rr}-_xlfn.MINIFS($E${ms_top}:$E${ms_bot},$A${ms_top}:$A${ms_bot},A{rr})", fmt="0")
+        put(ws, f"G{rr}", mrow["source_id"])
+    bk.name("TIMELINE", f"Value_chain!$A${ms_top}:$G${ms_bot}")
+
+    # Changes ----------------------------------------------------------
+    ws = bk.sheet("Changes", "What changed 2018-2026: rates, costs, delivery and storage",
+                  "Yearly view of what moved Saudi tariffs, then where the programme stands now.",
+                  widths=[34, 14, 16, 16, 12, 50])
+    header(ws, 4, ["Year", "US 10-yr Treasury (avg)", "Avg Saudi PV tariff awarded (USc)", "Disclosed Saudi capex (USD/kWac)",
+                   "Saudi awards"])
+    eng_rng = lambda c: f"Engine!${c}${e_top}:${c}${e_bot}"
+    rates = {int(x["year"]): float(x["ust10_pct"]) for x in load("rates.csv")}
+    for i, yr in enumerate(range(2018, 2027)):
+        rr = 5 + i
+        put(ws, f"A{rr}", yr, F_INPUT, "0")
+        put(ws, f"B{rr}", rates[yr] / 100, F_INPUT, PCT2)
+        put(ws, f"C{rr}", f'=IFERROR(AVERAGEIFS({eng_rng("J")},{eng_rng("G")},A{rr},{eng_rng("C")},"KSA"),"")', fmt=CENTS)
+        put(ws, f"D{rr}", f'=IFERROR(INDEX(CX_AVG,MATCH(A{rr},CX_VIN,0)),"")', F_LINK, NUM0)
+        put(ws, f"E{rr}", f'=COUNTIFS({eng_rng("G")},A{rr},{eng_rng("C")},"KSA")', fmt="0")
+    bk.name("CHANGES_TABLE", "Changes!$A$5:$E$13")
+    put(ws, "A16", "Delivery: contracted is not connected (Aug 2026, GW)", bold=True)
+    deliv = [("Installed (solar and wind)", "=KSA_RE_INSTALLED"), ("Under development", "=KSA_RE_DEV"),
+             ("Tendered", "=KSA_RE_TENDERED"), ("Scheduled to commission in 2026", "=KSA_COMMISSION_2026"),
+             ("2030 target (upper end)", "=KSA_TARGET_2030"), ("GlobalData 2030 forecast", "=KSA_FORECAST_2030"),
+             ("Gap to target if the forecast holds", "=B21-B22")]
+    for i, (label, f) in enumerate(deliv):
+        put(ws, f"A{17 + i}", label)
+        put(ws, f"B{17 + i}", f, F_LINK if i < 6 else F_BASE, "0.0", FILL_OUT if i == 6 else None)
+    bk.name("DELIVERY_GAP", "Changes!$B$23")
+    put(ws, "A26", "Storage: the next price signal", bold=True)
+    store = [("First SPPC battery round (GWh)", "=BESS_R1_GWH"), ("Second round at qualification (GWh)", "=BESS_R2_GWH"),
+             ("2030 battery target (GWh)", "=BESS_TARGET_GWH"),
+             ("Firm solar-plus-storage cost 2025, low (USD/MWh)", "=FIRM_LO"),
+             ("Firm solar-plus-storage cost 2025, high (USD/MWh)", "=FIRM_HI"),
+             ("Najran PV-only tariff (USD/MWh)", "=T_NAJRAN*10")]
+    for i, (label, f) in enumerate(store):
+        put(ws, f"A{27 + i}", label)
+        put(ws, f"B{27 + i}", f, F_LINK, NUM1)
+
     # Checks -----------------------------------------------------------
     ws = bk.sheet("Checks", "Model checks", "All must be TRUE. The Cover shows the combined result.",
                   widths=[60, 14, 10] + [7] * 36)
@@ -691,20 +885,24 @@ def build(out=OUT):
         (14, "=PF_GEARING<=GEAR_MAX+0.000001"),
         (15, f'=COUNTIFS(Tracker!$U$5:$U${last_tr},"Y",Tracker!$X$5:$X${last_tr},"")=0'),
         (16, f"=SUMPRODUCT(--ISERROR(Engine!A{e_top}:AB{e_bot}))+SUMPRODUCT(--ISERROR(Engine_CF!A{e_top}:AP{e_bot}))=0"),
+        (17, "=ABS(VC_TOTAL-INDEX(Engine!$U:$U,MATCH(\"NAJRAN\",Engine!$A:$A,0)))<0.000001"),
+        (18, "=SUMPRODUCT(--ISERROR(Impact!A4:D30))+SUMPRODUCT(--ISERROR(Value_chain!A4:H60))"
+             "+SUMPRODUCT(--ISERROR(Changes!A4:E40))=0"),
     ]
     labels = {6: "Sensitivity base equals Engine required tariff for Najran",
               7: "Bridge start reproduces IRENA's USD 44/MWh", 8: "Bridge end reproduces Najran's real-equivalent tariff",
               9: "Shapley effects sum to the IRENA-to-Najran gap", 10: "Oman bridge effects sum to the KSA-to-Oman gap",
               11: "Oman bridge starts at the KSA hurdle tariff", 12: "PF debt fully repaid by end of tenor",
               13: "PF minimum DSCR respects the covenant", 14: "PF gearing within the cap",
-              15: "Every analysed tracker row has a tariff", 16: "No errors on Engine and Engine_CF"}
+              15: "Every analysed tracker row has a tariff", 16: "No errors on Engine and Engine_CF",
+              17: "Value-chain stack sums to Najran's required tariff", 18: "No errors on Impact, Value_chain, Changes"}
     for rr, f in checks:
         if rr != 5:
             put(ws, f"A{rr}", labels[rr])
         put(ws, f"C{rr}", f, fill=FILL_OUT)
-    put(ws, "A18", "All checks pass", bold=True)
-    put(ws, "C18", "=AND(C5:C16)", fill=FILL_OUT, bold=True)
-    bk.name("ALL_CHECKS", "Checks!$C$18")
+    put(ws, "A20", "All checks pass", bold=True)
+    put(ws, "C20", "=AND(C5:C18)", fill=FILL_OUT, bold=True)
+    bk.name("ALL_CHECKS", "Checks!$C$20")
 
     # Sources and Log --------------------------------------------------
     ws = bk.sheet("Sources", "Source register", "Accessed dates are when the figure was checked.",
@@ -749,6 +947,9 @@ def build(out=OUT):
         ("Oman tariff at Oman hurdle returns (USc/kWh)", "=OMN_COMMERCIAL", CENTS),
         ("Oman avoided fuel cost, regulated gas (USc/kWh)", "=OMN_AVOIDED_GAS", CENTS),
         ("Oman avoided fuel cost, LNG netback (USc/kWh)", "=OMN_AVOIDED_LNG", CENTS),
+        ("Oil displaced by operating Saudi solar (kb/d)", "=IMP_OP_KBD", NUM0),
+        ("Value of that oil vs tariff paid (x)", "=IMP_OP_RATIO", "0.0x"),
+        ("Najran cost before financing and tax (USc/kWh)", "=VC_PRE_FIN", CENTS),
         ("All model checks pass", "=ALL_CHECKS", None),
     ]
     for i, (label, f, fmt) in enumerate(key):
@@ -770,7 +971,10 @@ def build(out=OUT):
              ("Engine_CF", "Cash flows behind the Engine IRRs"), ("PF_Model", "Levered single-asset model"),
              ("Sensitivity", "Tornado and capex x WACC grid for Najran"),
              ("Bridge", "IRENA global average to Najran, Shapley attribution"),
-             ("Oman", "Replicability bridge, Oman tariff cases, avoided cost"), ("Checks", "Integrity checks"),
+             ("Oman", "Replicability bridge, Oman tariff cases, avoided cost"),
+             ("Impact", "Oil displaced and its value; Oman gas saved"),
+             ("Value_chain", "Najran cost stack, what has to be true, timelines"),
+             ("Changes", "Rates, costs, delivery gap, storage"), ("Checks", "Integrity checks"),
              ("Sources", "Source register"), ("Log", "Method notes")]
     for i, (tab, desc) in enumerate(guide):
         c = ws.cell(row=r + 1 + i, column=2, value=tab)

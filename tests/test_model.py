@@ -47,10 +47,11 @@ def test_committed_model_matches_build(tmp_path):
 
 
 def test_no_hardcoded_numbers_in_calc_tabs():
-    allowed = {"0", "1", "2", "3", "4", "8", "10", "100", "1000", "8760", "1000000", "2024", "2025",
+    allowed = {"0", "1", "2", "3", "4", "8", "10", "12", "100", "365", "1000", "8760", "1000000", "2024", "2025",
                "0.000001", "0.001"}
     wb = load_workbook(MODEL)
-    for name in ("Engine", "Engine_CF", "PF_Model", "Bridge", "Oman", "Capex", "Checks"):
+    for name in ("Engine", "Engine_CF", "PF_Model", "Bridge", "Oman", "Capex", "Checks", "Impact", "Value_chain",
+                 "Changes"):
         for row in wb[name].iter_rows():
             for c in row:
                 if isinstance(c.value, str) and c.value.startswith("="):
@@ -60,7 +61,7 @@ def test_no_hardcoded_numbers_in_calc_tabs():
 
 
 def test_all_checks_pass(values):
-    assert values["Checks"]["C18"].value is True
+    assert values["Checks"]["C20"].value is True
 
 
 def test_najran_outputs_match_reference(values):
@@ -87,3 +88,19 @@ def test_oman_commercial_tariff_matches_reference(values):
     n = int(A["OMN_PPA"])
     ref = lcoe(A["OMN_CAPEX"], PVGIS["IBRI3"] * CAL, A["OPEX"], w, n, A["DEGR"], A["OPEX_ESC"], A["TAX_OMN"], n)
     assert values["Cover"]["C14"].value == pytest.approx(100 * ref)
+
+
+def test_impact_matches_reference(values):
+    tracker = list(csv.DictReader((ROOT / "data" / "tracker.csv").read_text().splitlines()))
+    e_ksa = [PVGIS[t["id"]] * CAL for t in tracker
+             if t["in_analysis"] == "Y" and t["country"] == "KSA" and t["id"] in PVGIS]
+    twh = A["KSA_SOLAR_INSTALLED"] * (sum(e_ksa) / len(e_ksa)) / 1000
+    kbd = twh * A["HR_OIL"] / A["BBL_MMBTU"] * A["LIQ_SHARE"] * 1000 / 365
+    assert values["Cover"]["C17"].value == pytest.approx(kbd)
+
+
+def test_cost_before_financing_matches_reference(values):
+    n, d, g = 25, A["DEGR"], A["OPEX_ESC"]
+    energy = NAJRAN_E * (1 - (1 - d) ** n) / d
+    om = A["OPEX"] * ((1 + g) ** n - 1) / g
+    assert values["Cover"]["C19"].value == pytest.approx(100 * (A["CAPEX"] + om) / energy)
