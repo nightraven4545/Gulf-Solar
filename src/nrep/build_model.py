@@ -886,8 +886,8 @@ def build(out=OUT):
         (15, f'=COUNTIFS(Tracker!$U$5:$U${last_tr},"Y",Tracker!$X$5:$X${last_tr},"")=0'),
         (16, f"=SUMPRODUCT(--ISERROR(Engine!A{e_top}:AB{e_bot}))+SUMPRODUCT(--ISERROR(Engine_CF!A{e_top}:AP{e_bot}))=0"),
         (17, "=ABS(VC_TOTAL-INDEX(Engine!$U:$U,MATCH(\"NAJRAN\",Engine!$A:$A,0)))<0.000001"),
-        (18, "=SUMPRODUCT(--ISERROR(Impact!A4:D30))+SUMPRODUCT(--ISERROR(Value_chain!A4:H60))"
-             "+SUMPRODUCT(--ISERROR(Changes!A4:E40))=0"),
+        (18, ("=SUMPRODUCT(--ISERROR(Impact!A4:D30))+SUMPRODUCT(--ISERROR(Value_chain!A4:H60))"
+             "+SUMPRODUCT(--ISERROR(Changes!A4:E40))=0")),
     ]
     labels = {6: "Sensitivity base equals Engine required tariff for Najran",
               7: "Bridge start reproduces IRENA's USD 44/MWh", 8: "Bridge end reproduces Najran's real-equivalent tariff",

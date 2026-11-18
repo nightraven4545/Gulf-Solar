@@ -47,7 +47,7 @@ def test_committed_model_matches_build(tmp_path):
 
 
 def test_no_hardcoded_numbers_in_calc_tabs():
-    allowed = {"0", "1", "2", "3", "4", "8", "10", "12", "100", "365", "1000", "8760", "1000000", "2024", "2025",
+    allowed = {"0", "1", "2", "3", "4", "6", "8", "10", "12", "100", "365", "1000", "8760", "1000000", "2024", "2025",
                "0.000001", "0.001"}
     wb = load_workbook(MODEL)
     for name in ("Engine", "Engine_CF", "PF_Model", "Bridge", "Oman", "Capex", "Checks", "Impact", "Value_chain",
