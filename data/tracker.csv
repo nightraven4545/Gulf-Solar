@@ -1,38 +1,38 @@
-id,project,country,offtaker,track,round,tech,mw_ac,tariff_usc,tariff_halala,tariff_sar,tariff_basis,date,consortium,region,lat,lon,loc_quality,ppa_years,status,in_analysis,source_ids,note
-SAKAKA,Sakaka,KSA,SPPC,SPPC,R1,PV,300,2.3417,,,PPA,2018-02,ACWA Power (70%) / AlGihaz (30%),Al Jouf,29.97,40.21,town,25,operating,Y,S01,First NREP award
-SHUAIBAH1,Shuaibah 1,KSA,SPPC,SPPC,R2,PV,600,1.04,,,PPA,2021-04,ACWA Power / Gulf Investment Corp / Al Babtain,Makkah,20.68,39.53,town,35,operating,Y,S02;S03;S29;S43,Record low tariff at signing; ACWA reports Shuaibah 1 & 2 under a 35-year PPA
-JEDDAH,Jeddah,KSA,SPPC,SPPC,R2,PV,300,1.988,,,PPA,2021-04,Masdar / EDF / Nesma,Makkah,21.54,39.17,town,25,operating,N,S03;S04,Reported tariff conflicts with the shortlisted bid of SAR 0.0609/kWh; excluded until resolved
-RABIGH1,Rabigh,KSA,SPPC,SPPC,R2,PV,300,,,,undisclosed,2021-04,Marubeni / Aljomaih,Makkah,22.80,39.03,town,25,operating,N,S03,Final tariff not found
-QURAYYAT,Qurayyat,KSA,SPPC,SPPC,R2,PV,200,,,,undisclosed,2021-04,ACWA Power,Al Jouf,31.33,37.34,town,25,operating,N,S03,Final tariff not found
-ARRASS1,Ar Rass,KSA,SPPC,SPPC,R3,PV,700,,,0.05623,lowest bid,2021-10,ACWA Power-led consortium,Qassim,25.87,43.50,town,25,operating,Y,S05;S43,Lowest shortlisted bid; PPA later signed with the same consortium
-SAAD1,Saad,KSA,SPPC,SPPC,R3,PV,300,,,0.05563,lowest bid,2021-10,Jinko Power-led consortium,Riyadh,,,unknown,25,operating,Y,S05,Lowest shortlisted bid in Round 3; site coordinates not found
-HENAKIYAH1,Al Henakiyah,KSA,SPPC,SPPC,R4,PV,1100,1.68420,6.31575,,PPA,2023-11,Masdar / EDF Renewables / Nesma,Madinah,24.86,40.50,town,25,construction,Y,S08;S09,
-TABARJAL,Tabarjal,KSA,SPPC,SPPC,R4,PV,400,1.70795,6.40482,,PPA,2023-11,Jinko Power / Sun Glare / Sunlight Energy,Al Jouf,30.50,38.22,town,25,construction,Y,S08,
-SADAWI,Al Sadawi,KSA,SPPC,SPPC,R5,PV,2000,,4.847,,PPA,2024-11,Masdar / KEPCO / GD Power,Eastern,25.38,49.59,province,25,construction,Y,S10;S18,Some outlets quote 4.92019 halala (another bidder's price); site proxied by Al Hofuf
-MASAA,Al Masa'a,KSA,SPPC,SPPC,R5,PV,1000,1.36861,5.13228,,lowest bid,2024-11,SPIC Huanghe / EDF Renewables,Hail,27.52,41.69,province,25,construction,Y,S12,Site proxied by Hail city
-HENAKIYAH2,Al Henakiyah 2,KSA,SPPC,SPPC,R5,PV,400,1.51631,5.68618,,lowest bid,2024-11,SPIC Huanghe / EDF Renewables,Madinah,24.86,40.50,town,25,construction,Y,S12,
-RABIGH2,Rabigh 2,KSA,SPPC,SPPC,R5,PV,300,1.78138,6.68019,,PPA,2024-12,Al Jomaih Energy & Water / TotalEnergies,Makkah,22.80,39.03,town,25,construction,Y,S12;S13,
-NAJRAN,Najran,KSA,SPPC,SPPC,R6,PV,1400,1.09682,4.11307,,award,2025-10,Masdar,Najran,17.49,44.13,town,25,development,Y,S14,Second-lowest solar tariff on record
-ADDARB,Ad Darb,KSA,SPPC,SPPC,R6,PV,600,1.36070,5.10262,,award,2025-10,Masdar,Jazan,17.72,42.25,town,25,development,Y,S14,
-SAMTAH,Samtah,KSA,SPPC,SPPC,R6,PV,600,1.48678,5.57544,,award,2025-10,Saudi Electricity Company / EDF,Jazan,16.60,42.94,town,25,development,Y,S14,
-SUFUN,As Sufun,KSA,SPPC,SPPC,R6,PV,400,1.50686,5.65074,,award,2025-10,Al Jomaih Energy & Water / TotalEnergies,Hail,27.52,41.69,province,25,development,Y,S14,Site proxied by Hail city
-R7PV,Round 7 (four PV projects),KSA,SPPC,SPPC,R7,PV,3100,,,,pending,2026-09,,,,,,25,bidding,N,S37;S38,Bids submitted; no award announced as of 2026-11-18
-R8PV,Round 8 (PV),KSA,SPPC,SPPC,R8,PV,1900,,,,pending,2026-11,,,,,,,RFQ,N,S39,Request for qualification
-SUDAIR,Sudair,KSA,SPPC,PIF,,PV,1500,1.239,,,PPA,2021-04,ACWA Power / Badeel / SAPCO,Riyadh,25.85,45.40,approx,25,operating,Y,S36;S17;S43,Directly negotiated
-ARRASS2,Ar Rass 2,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2023-05,ACWA Power / Badeel,Qassim,,,,35,construction,N,S19,Tariff not disclosed
-SAAD2,Saad 2,KSA,SPPC,PIF,,PV,1125,,,,undisclosed,2023-05,ACWA Power / Badeel,Riyadh,,,,35,construction,N,S19;S43,Tariff not disclosed
-KAHFAH,Al Kahfah,KSA,SPPC,PIF,,PV,1425,,,,undisclosed,2023-05,ACWA Power / Badeel,Hail,,,,35,construction,N,S19;S43,Tariff not disclosed
-HADEN,Haden,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,Makkah,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
-MUWAYH,Muwayh,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,Makkah,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
-KHUSHAYBI,Al Khushaybi,KSA,SPPC,PIF,,PV,1500,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,Qassim,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
-BISHA,Bisha,KSA,SPPC,PIF,,PV,3000,,,0.0484,PPA,2025-07,ACWA Power / Badeel / SAPCO,Asir,20.00,42.60,town,25,development,Y,S15;S16;S43,
-HUMAIJ,Humaij,KSA,SPPC,PIF,,PV,3000,,,0.0491,PPA,2025-07,ACWA Power / Badeel / SAPCO,Madinah,24.47,39.61,province,25,development,Y,S15;S16;S43,Site proxied by Madinah city
-KHULAIS,Khulais,KSA,SPPC,PIF,,PV,2000,,,0.0510,PPA,2025-07,ACWA Power / Badeel / SAPCO,Makkah,22.15,39.32,town,25,development,Y,S15;S16;S43,
-AFIF1,Afif 1,KSA,SPPC,PIF,,PV,2000,,,0.0474,PPA,2025-07,ACWA Power / Badeel / SAPCO,Riyadh,23.91,42.92,town,25,development,Y,S15;S16;S43,
-AFIF2,Afif 2,KSA,SPPC,PIF,,PV,2000,,,0.0472,PPA,2025-07,ACWA Power / Badeel / SAPCO,Riyadh,23.91,42.92,town,25,development,Y,S15;S16,
-NOORAD,Noor Abu Dhabi (Sweihan),UAE,EWEC,IPP tender,,PV,1177,2.42,,,PPA,2017,Marubeni / Jinko Solar,Abu Dhabi,24.47,55.33,town,25,operating,Y,S01,Comparator
-DHAFRA,Al Dhafra,UAE,EWEC,IPP tender,,PV,2000,1.32,,,PPA,2020-12,TAQA / Masdar / EDF / Jinko Power,Abu Dhabi,24.25,54.75,approx,30,operating,Y,S27;S29,Bid 1.35 USc; improved to 1.32 USc at financial close
-MBR5,MBR Solar Park Phase 5,UAE,DEWA,IPP tender,,PV,900,1.6953,,,PPA,2019-11,ACWA Power-led,Dubai,24.76,55.37,town,25,operating,Y,S30,Comparator
-MBR6,MBR Solar Park Phase 6,UAE,DEWA,IPP tender,,PV,1800,1.6215,,,PPA,2023,Masdar,Dubai,24.76,55.37,town,25,operating,Y,S29,Comparator
-KHARSAAH,Al Kharsaah,Qatar,KAHRAMAA,IPP tender,,PV,800,1.567,,,PPA,2020-01,Total / Marubeni,Qatar,25.28,51.03,approx,25,operating,Y,S28,Comparator; reported lower at financial close
-IBRI3,Ibri III (500 MW PV + 100 MWh BESS),Oman,Nama PWP,IPP tender,,PV+BESS,500,,,,undisclosed,2025-09,Masdar / Al Khadra / KOMIPO / OQ Alternative Energy,Ad Dhahirah,23.23,56.51,town,,construction,N,S25;S26,Oman does not publish renewable IPP tariffs
+id,project,country,offtaker,track,round,tech,mw_ac,tariff_usc,tariff_halala,tariff_sar,tariff_basis,date,consortium,lead_sponsor,region,lat,lon,loc_quality,ppa_years,status,in_analysis,source_ids,note
+SAKAKA,Sakaka,KSA,SPPC,SPPC,R1,PV,300,2.3417,,,PPA,2018-02,ACWA Power (70%) / AlGihaz (30%),ACWA Power,Al Jouf,29.97,40.21,town,25,operating,Y,S01,First NREP award
+SHUAIBAH1,Shuaibah 1,KSA,SPPC,SPPC,R2,PV,600,1.04,,,PPA,2021-04,ACWA Power / Gulf Investment Corp / Al Babtain,ACWA Power,Makkah,20.68,39.53,town,35,operating,Y,S02;S03;S29;S43,Record low tariff at signing; ACWA reports Shuaibah 1 & 2 under a 35-year PPA
+JEDDAH,Jeddah,KSA,SPPC,SPPC,R2,PV,300,1.988,,,PPA,2021-04,Masdar / EDF / Nesma,Masdar,Makkah,21.54,39.17,town,25,operating,N,S03;S04,Reported tariff conflicts with the shortlisted bid of SAR 0.0609/kWh; excluded until resolved
+RABIGH1,Rabigh,KSA,SPPC,SPPC,R2,PV,300,,,,undisclosed,2021-04,Marubeni / Aljomaih,Marubeni,Makkah,22.80,39.03,town,25,operating,N,S03,Final tariff not found
+QURAYYAT,Qurayyat,KSA,SPPC,SPPC,R2,PV,200,,,,undisclosed,2021-04,ACWA Power,ACWA Power,Al Jouf,31.33,37.34,town,25,operating,N,S03,Final tariff not found
+ARRASS1,Ar Rass,KSA,SPPC,SPPC,R3,PV,700,,,0.05623,lowest bid,2021-10,ACWA Power-led consortium,ACWA Power,Qassim,25.87,43.50,town,25,operating,Y,S05;S43,Lowest shortlisted bid; PPA later signed with the same consortium
+SAAD1,Saad,KSA,SPPC,SPPC,R3,PV,300,,,0.05563,lowest bid,2021-10,Jinko Power-led consortium,Jinko Power,Riyadh,,,unknown,25,operating,Y,S05,Lowest shortlisted bid in Round 3; site coordinates not found
+HENAKIYAH1,Al Henakiyah,KSA,SPPC,SPPC,R4,PV,1100,1.68420,6.31575,,PPA,2023-11,Masdar / EDF Renewables / Nesma,Masdar,Madinah,24.86,40.50,town,25,construction,Y,S08;S09,
+TABARJAL,Tabarjal,KSA,SPPC,SPPC,R4,PV,400,1.70795,6.40482,,PPA,2023-11,Jinko Power / Sun Glare / Sunlight Energy,Jinko Power,Al Jouf,30.50,38.22,town,25,construction,Y,S08,
+SADAWI,Al Sadawi,KSA,SPPC,SPPC,R5,PV,2000,,4.847,,PPA,2024-11,Masdar / KEPCO / GD Power,Masdar,Eastern,25.38,49.59,province,25,construction,Y,S10;S18,Some outlets quote 4.92019 halala (another bidder's price); site proxied by Al Hofuf
+MASAA,Al Masa'a,KSA,SPPC,SPPC,R5,PV,1000,1.36861,5.13228,,lowest bid,2024-11,SPIC Huanghe / EDF Renewables,SPIC,Hail,27.52,41.69,province,25,construction,Y,S12,Site proxied by Hail city
+HENAKIYAH2,Al Henakiyah 2,KSA,SPPC,SPPC,R5,PV,400,1.51631,5.68618,,lowest bid,2024-11,SPIC Huanghe / EDF Renewables,SPIC,Madinah,24.86,40.50,town,25,construction,Y,S12,
+RABIGH2,Rabigh 2,KSA,SPPC,SPPC,R5,PV,300,1.78138,6.68019,,PPA,2024-12,Al Jomaih Energy & Water / TotalEnergies,AEW / TotalEnergies,Makkah,22.80,39.03,town,25,construction,Y,S12;S13,
+NAJRAN,Najran,KSA,SPPC,SPPC,R6,PV,1400,1.09682,4.11307,,award,2025-10,Masdar,Masdar,Najran,17.49,44.13,town,25,development,Y,S14,Second-lowest solar tariff on record
+ADDARB,Ad Darb,KSA,SPPC,SPPC,R6,PV,600,1.36070,5.10262,,award,2025-10,Masdar,Masdar,Jazan,17.72,42.25,town,25,development,Y,S14,
+SAMTAH,Samtah,KSA,SPPC,SPPC,R6,PV,600,1.48678,5.57544,,award,2025-10,Saudi Electricity Company / EDF,SEC / EDF,Jazan,16.60,42.94,town,25,development,Y,S14,
+SUFUN,As Sufun,KSA,SPPC,SPPC,R6,PV,400,1.50686,5.65074,,award,2025-10,Al Jomaih Energy & Water / TotalEnergies,AEW / TotalEnergies,Hail,27.52,41.69,province,25,development,Y,S14,Site proxied by Hail city
+R7PV,Round 7 (four PV projects),KSA,SPPC,SPPC,R7,PV,3100,,,,pending,2026-09,,,,,,,25,bidding,N,S37;S38,Bids submitted; no award announced as of 2026-11-18
+R8PV,Round 8 (PV),KSA,SPPC,SPPC,R8,PV,1900,,,,pending,2026-11,,,,,,,,RFQ,N,S39,Request for qualification
+SUDAIR,Sudair,KSA,SPPC,PIF,,PV,1500,1.239,,,PPA,2021-04,ACWA Power / Badeel / SAPCO,ACWA Power,Riyadh,25.85,45.40,approx,25,operating,Y,S36;S17;S43,Directly negotiated
+ARRASS2,Ar Rass 2,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2023-05,ACWA Power / Badeel,ACWA Power,Qassim,,,,35,construction,N,S19,Tariff not disclosed
+SAAD2,Saad 2,KSA,SPPC,PIF,,PV,1125,,,,undisclosed,2023-05,ACWA Power / Badeel,ACWA Power,Riyadh,,,,35,construction,N,S19;S43,Tariff not disclosed
+KAHFAH,Al Kahfah,KSA,SPPC,PIF,,PV,1425,,,,undisclosed,2023-05,ACWA Power / Badeel,ACWA Power,Hail,,,,35,construction,N,S19;S43,Tariff not disclosed
+HADEN,Haden,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,ACWA Power,Makkah,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
+MUWAYH,Muwayh,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,ACWA Power,Makkah,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
+KHUSHAYBI,Al Khushaybi,KSA,SPPC,PIF,,PV,1500,,,,undisclosed,2024-09,ACWA Power / Badeel / SAPCO,ACWA Power,Qassim,,,,25,construction,N,S20;S43,Tariff not disclosed; date is financial close
+BISHA,Bisha,KSA,SPPC,PIF,,PV,3000,,,0.0484,PPA,2025-07,ACWA Power / Badeel / SAPCO,ACWA Power,Asir,20.00,42.60,town,25,development,Y,S15;S16;S43,
+HUMAIJ,Humaij,KSA,SPPC,PIF,,PV,3000,,,0.0491,PPA,2025-07,ACWA Power / Badeel / SAPCO,ACWA Power,Madinah,24.47,39.61,province,25,development,Y,S15;S16;S43,Site proxied by Madinah city
+KHULAIS,Khulais,KSA,SPPC,PIF,,PV,2000,,,0.0510,PPA,2025-07,ACWA Power / Badeel / SAPCO,ACWA Power,Makkah,22.15,39.32,town,25,development,Y,S15;S16;S43,
+AFIF1,Afif 1,KSA,SPPC,PIF,,PV,2000,,,0.0474,PPA,2025-07,ACWA Power / Badeel / SAPCO,ACWA Power,Riyadh,23.91,42.92,town,25,development,Y,S15;S16;S43,
+AFIF2,Afif 2,KSA,SPPC,PIF,,PV,2000,,,0.0472,PPA,2025-07,ACWA Power / Badeel / SAPCO,ACWA Power,Riyadh,23.91,42.92,town,25,development,Y,S15;S16,
+NOORAD,Noor Abu Dhabi (Sweihan),UAE,EWEC,IPP tender,,PV,1177,2.42,,,PPA,2017,Marubeni / Jinko Solar,Marubeni,Abu Dhabi,24.47,55.33,town,25,operating,Y,S01,Comparator
+DHAFRA,Al Dhafra,UAE,EWEC,IPP tender,,PV,2000,1.32,,,PPA,2020-12,TAQA / Masdar / EDF / Jinko Power,TAQA,Abu Dhabi,24.25,54.75,approx,30,operating,Y,S27;S29,Bid 1.35 USc; improved to 1.32 USc at financial close
+MBR5,MBR Solar Park Phase 5,UAE,DEWA,IPP tender,,PV,900,1.6953,,,PPA,2019-11,ACWA Power-led,ACWA Power,Dubai,24.76,55.37,town,25,operating,Y,S30,Comparator
+MBR6,MBR Solar Park Phase 6,UAE,DEWA,IPP tender,,PV,1800,1.6215,,,PPA,2023,Masdar,Masdar,Dubai,24.76,55.37,town,25,operating,Y,S29,Comparator
+KHARSAAH,Al Kharsaah,Qatar,KAHRAMAA,IPP tender,,PV,800,1.567,,,PPA,2020-01,Total / Marubeni,TotalEnergies,Qatar,25.28,51.03,approx,25,operating,Y,S28,Comparator; reported lower at financial close
+IBRI3,Ibri III (500 MW PV + 100 MWh BESS),Oman,Nama PWP,IPP tender,,PV+BESS,500,,,,undisclosed,2025-09,Masdar / Al Khadra / KOMIPO / OQ Alternative Energy,Masdar,Ad Dhahirah,23.23,56.51,town,,construction,N,S25;S26,Oman does not publish renewable IPP tariffs

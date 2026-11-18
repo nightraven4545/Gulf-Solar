@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Saudi NREP solar tariff tracker and LCOE reverse-engineering"
 requires-python = ">=3.12"
 dependencies = [
+    "matplotlib>=3.11.2",
     "openpyxl",
     "python-pptx",
 ]

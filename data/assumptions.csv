@@ -46,3 +46,25 @@ OMN_HR,Oman,Marginal CCGT heat rate,7.0,6.5,8.0,MMBtu/MWh,Assumed,,
 BRENT,Oman,Brent 2026,86,86,115,USD/bbl,Reported,S32,World Bank baseline; severe-scenario high
 LNG_SLOPE,Oman,LNG price as share of Brent,0.12,0.11,0.14,share,Assumed,,Typical oil-indexed Asian LNG slope
 LNG_NETBACK_COST,Oman,Liquefaction and shipping deduction,2.5,2.0,3.5,USD/MMBtu,Assumed,,Converts delivered LNG price to an export netback for the opportunity-cost view
+HR_OIL,Impact,Heat rate of oil-fired plant displaced,10.0,9.0,11.0,MMBtu/MWh,Assumed,S56,US petroleum fleet averaged 10.97 in 2025; the Saudi fleet burns crude and fuel oil in steam and combined-cycle units
+BBL_MMBTU,Impact,Energy content of a barrel of crude,5.80,5.80,5.80,MMBtu/bbl,Reported,S49,
+CO2_BBL,Impact,CO2 per barrel of crude burned,0.43,0.43,0.43,tCO2/bbl,Reported,S49,
+LIQ_SHARE,Impact,Share of solar output that displaces liquid fuel,0.80,0.50,1.00,share,Assumed,S44,Gas runs as baseload; daytime solar mostly pushes out crude and fuel oil burn
+OIL_DISC,Impact,Discount of a saved barrel to Brent,3,0,8,USD/bbl,Assumed,,Netback after freight; during the 2026 Hormuz closure a saved barrel can only be exported if Yanbu has spare loading capacity
+CRUDE_BURN_2025,Impact,Saudi direct crude burn 2025 average,440,440,440,kb/d,Reported,S44,
+CRUDE_BURN_PEAK,Impact,Saudi direct crude burn peak (Aug 2024),814,814,814,kb/d,Reported,S44,
+KSA_SOLAR_INSTALLED,Context,Saudi solar installed (Aug 2026),17.8,17.8,17.8,GW,Reported,S45,
+KSA_RE_INSTALLED,Context,Saudi solar and wind installed (Aug 2026),19.3,19.3,19.3,GW,Reported,S45,
+KSA_RE_DEV,Context,Saudi solar and wind under development (Aug 2026),23.9,23.9,23.9,GW,Reported,S45,
+KSA_RE_TENDERED,Context,Saudi solar and wind tendered (Aug 2026),20.6,20.6,20.6,GW,Reported,S45,
+KSA_TARGET_2030,Context,Saudi renewables target 2030,130,100,130,GW,Reported,S45,Stated as 100-130 GW
+KSA_FORECAST_2030,Context,GlobalData forecast for 2030,74.2,74.2,74.2,GW,Reported,S45,
+BESS_R1_GWH,Context,First SPPC battery round,8,8,8,GWh,Reported,S46,2 GW / 8 GWh; USD 1.16bn
+BESS_R2_GWH,Context,Second SPPC battery round (qualification),12,12,12,GWh,Reported,S47,
+BESS_TARGET_GWH,Context,Saudi battery target 2030,48,48,48,GWh,Reported,S21,
+FIRM_LO,Context,Firm solar-plus-storage cost 2025 (low),54,54,54,USD/MWh,Reported,S57,High-resource regions
+FIRM_HI,Context,Firm solar-plus-storage cost 2025 (high),82,82,82,USD/MWh,Reported,S57,
+OMN_SOLAR_TWH_2030,Oman,Oman solar generation 2030 (PWP plan),16.16,16.16,16.16,TWh,Reported,S55,
+OMN_SOLAR_TWH_2031,Oman,Oman solar generation 2031 (PWP plan),23.26,23.26,23.26,TWh,Reported,S55,
+OMN_DEMAND_2031,Oman,Oman MIS demand 2031,69,69,69,TWh,Reported,S55,
+OMN_RE_2030,Oman,Oman renewables share 2030 (PWP plan),0.30,0.30,0.30,share,Reported,S55,
