@@ -65,3 +65,4 @@ def fetch_kapsarc():
 if __name__ == "__main__":
     for r in fetch_yields():
         print(r["projects"], r["yield_kwh_kwp_yr"])
+    print(fetch_kapsarc())

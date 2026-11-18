@@ -8,6 +8,7 @@ data:
 # openpyxl writes formulas only; LibreOffice recalculates so the saved file carries values.
 model:
 	uv run python -m nrep.build_model
+	mkdir -p build
 	soffice --headless --calc --convert-to xlsx --outdir build $(MODEL) >/dev/null
 	mv build/$(notdir $(MODEL)) $(MODEL)
 

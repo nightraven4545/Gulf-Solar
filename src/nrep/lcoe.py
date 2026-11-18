@@ -87,10 +87,6 @@ def project_finance(tariff, capex, energy, opex, years, degr, opex_esc, tax, dep
             "min_dscr": min_dscr, "end_balance": bal}
 
 
-def wacc(gearing, debt_rate, equity_rate, tax):
-    return gearing * debt_rate * (1 - tax) + (1 - gearing) * equity_rate
-
-
 def real_from_flat(tariff, nominal_rate, inflation, years, degr=0.0):
     """Constant-real-price equivalent of a flat nominal tariff, in year-0 dollars."""
     real_rate = (1 + nominal_rate) / (1 + inflation) - 1

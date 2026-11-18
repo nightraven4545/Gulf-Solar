@@ -327,7 +327,7 @@ def build(path=DECK):
     # 3 Programme ----------------------------------------------------------
     s = d.slide(f"Saudi Arabia has contracted {gw_sppc + gw_pif:.0f} GW of utility solar through two buying tracks, "
                 f"{gw_pif / (gw_pif + gw_sppc):.0%} of it negotiated with PIF-backed ACWA consortia",
-                "Source: model Tracker tab (37 projects); SPPC, ACWA Power, Masdar and trade press releases (S01-S43). "
+                f"Source: model Tracker tab ({len(tr)} projects); SPPC, ACWA Power, Masdar and trade press releases (S01-S43). "
                 "PV only; excludes Category A plants under 150 MW; Round 7 (3.1 GW) and Round 8 (1.9 GW) pending",
                 notes="SPPC runs competitive rounds; PIF projects are negotiated with ACWA Power, Badeel (PIF) and SAPCO (Aramco). "
                       "Both sell to SPPC under 25-year PPAs (35 years for three 2023 projects).")
@@ -746,11 +746,12 @@ def build(path=DECK):
     # Appendix -------------------------------------------------------------
     s = d.slide("Appendix: how the model is built", "Source: model/NREP_Tariff_LCOE_Model.xlsx; docs/model-guide.md",
                 tag=False)
-    boxes = [("Inputs", "46 assumptions, each Reported, Derived or Assumed, with a range"),
-             ("Tracker and Yield", "37 projects; PVGIS yields calibrated to Sakaka's measured output"),
+    n_inputs = sum(1 for r in m.wb["Inputs"].iter_rows(min_row=5, values_only=True) if r[0] and r[7])
+    boxes = [("Inputs", f"{n_inputs} assumptions, each Reported, Derived or Assumed, with a range"),
+             ("Tracker and Yield", f"{len(tr)} projects; PVGIS yields calibrated to Sakaka's measured output"),
              ("Engine", "Closed-form after-tax LCOE: implied capex, IRR, real equivalent"),
              ("Bridge and Oman", "Shapley attribution; Oman cases and avoided cost"),
-             ("Checks", "12 integrity tests, all TRUE; 19 automated tests in the repo")]
+             ("Checks", "12 integrity tests, all TRUE, plus automated tests in the repo")]
     for i, (h_, b) in enumerate(boxes):
         x = 0.5 + i * 2.5
         shp = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(2.2), Inches(2.2), Inches(2.4))
