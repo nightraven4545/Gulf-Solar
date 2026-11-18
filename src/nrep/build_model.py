@@ -323,12 +323,12 @@ def build(out=OUT):
 
     # Engine -----------------------------------------------------------
     ws = bk.sheet("Engine", "LCOE engine: what each awarded tariff implies",
-                  "One row per tariff. Closed-form after-tax LCOE at the hurdle WACC. Implied capex = the capex at which the tariff earns exactly the hurdle; IRR = return at the disclosed cost of that vintage.",
+                  "One row per tariff. Closed-form after-tax LCOE at the hurdle WACC. Implied capex = the capex at which the tariff earns exactly the hurdle; IRR = return at the disclosed cost of that project, or its vintage average where none is published.",
                   widths=[12, 24, 7, 9, 6, 9, 8, 7, 7, 10, 10, 8, 8, 8, 9, 8, 9, 9, 8, 11, 11, 11, 10, 10, 8, 9, 10, 11])
     hdr = ["ID", "Project", "Country", "Track", "Round", "Date", "Vintage", "MWac", "PPA yrs",
            "Tariff USc/kWh", "Energy kWh/kWac", "AC CF", "Hurdle WACC", "q energy", "PV factor energy",
            "q O&M", "PV factor O&M", "Dep. annuity", "Tax shield", "Implied capex USD/kWac",
-           "Required tariff at base capex (USc)", "Disclosed capex, same vintage", "Implied vs disclosed",
+           "Required tariff at base capex (USc)", "Disclosed capex (own, else vintage avg)", "Implied vs disclosed",
            "Project IRR at disclosed capex", "q real", "PV factor real", "Real-equivalent tariff (USc)",
            "Tariff at reference yield (USc)"]
     header(ws, 4, hdr)
@@ -355,7 +355,8 @@ def build(out=OUT):
         put(ws, f"S{r}", f"=TAX_KSA*R{r}/DEP_YEARS", fmt="0.0000")
         put(ws, f"T{r}", f"=(1-TAX_KSA)*(J{r}/100*K{r}*O{r}-OPEX*Q{r})/(1-S{r})", fmt=NUM0, fill=FILL_OUT)
         put(ws, f"U{r}", f"=100*(CAPEX*(1-S{r})+(1-TAX_KSA)*OPEX*Q{r})/((1-TAX_KSA)*K{r}*O{r})", fmt=CENTS)
-        put(ws, f"V{r}", f'=IFERROR(INDEX(CX_AVG,MATCH(G{r},CX_VIN,0)),"")', F_LINK, NUM0)
+        put(ws, f"V{r}", f'=IFERROR(INDEX({rng("K")},MATCH(A{r},{rng("A")},0)),IFERROR(INDEX(CX_AVG,MATCH(G{r},CX_VIN,0)),""))',
+            F_LINK, NUM0)
         put(ws, f"W{r}", f'=IF(V{r}="","",T{r}/V{r}-1)', fmt=PCT)
         put(ws, f"X{r}", f'=IF(V{r}="","",Engine_CF!$AP{r})', F_LINK, PCT, FILL_OUT)
         put(ws, f"Y{r}", f"=(1-DEGR)*(1+US_CPI)/(1+M{r})", fmt="0.0000")
@@ -717,7 +718,7 @@ def build(out=OUT):
         "Tariffs are flat nominal USD for the PPA term; the engine treats them as energy-only revenue with no merchant tail.",
         "Yield: PVGIS tracked yield x a single calibration factor from Sakaka's measured 2022 output. One factor for all sites.",
         "Implied capex uses the KSA hurdle WACC for every row, including UAE and Qatar comparators.",
-        "Project IRR uses the average disclosed Saudi cost of the same vintage (Capex tab); rows outside 2021-2025 show blank.",
+        "Project IRR uses the disclosed cost of that project where published, else the Saudi average for its vintage; rows outside 2021-2025 show blank.",
         "Debt is sculpted on CFADS after unlevered tax to avoid a circular reference; the interest tax shield goes to equity.",
         "No loss carry-forward in the PF model; taxable profit is positive in all base runs.",
         "Bridge uses IRENA's basis (per kWdc, real, pre-tax, no degradation) at both ends; DC/AC ratio converts Saudi inputs.",
