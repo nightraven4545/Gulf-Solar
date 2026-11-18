@@ -12,6 +12,7 @@ def test_every_reference_resolves():
     ids = {r["id"] for r in load("sources.csv")}
     refs = [s for r in load("tracker.csv") for s in r["source_ids"].split(";")]
     refs += [s for r in load("assumptions.csv") for s in r["source_id"].split(";") if s]
+    refs += [r["source_id"] for r in load("capex_evidence.csv")]
     assert set(refs) <= ids
 
 

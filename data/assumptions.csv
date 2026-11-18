@@ -1,10 +1,10 @@
 id,section,parameter,value,low,high,unit,type,source_id,rationale
 FX,Macro,SAR per USD,3.75,3.75,3.75,SAR/USD,Reported,S14,Fixed peg; halala and US cent figures in S14 imply exactly 3.75
 CPI,Macro,Long-run US inflation,0.023,0.020,0.030,per yr,Assumed,,Used only to restate flat nominal tariffs in real terms
-CAPEX,Tech,Capex (2025-26 vintage KSA utility PV),520,450,650,USD/kWac,Derived,S18;S20;S23,Triangulated: disclosed costs of USD 550/kWac (Al Sadawi 2025) and USD 582/kWac (Haden/Muwayh/Khushaybi 2024); bottom-up build at 2026 module prices
-SAKAKA_GWH,Tech,Sakaka measured output 2022,932,932,932,GWh,Reported,S41,Calibrates PVGIS yield to delivered AC energy
+CAPEX,Tech,Capex (2025-26 vintage KSA utility PV),520,450,650,USD/kWac,Derived,S43;S18;S23,"Disclosed 2025 costs: USD 500/kWac (ACWA PIF projects) and USD 550/kWac (Al Sadawi); bottom-up build at 2026 module prices gives ~USD 490"
+SAKAKA_GWH,Tech,Sakaka measured output 2022,932,932,932,GWh,Reported,S41;S42,Calibrates PVGIS yield to delivered AC energy
 SAKAKA_MW,Tech,Sakaka capacity,300,300,300,MWac,Reported,S01,
-YIELD_CAL_RANGE,Tech,Yield calibration factor range,1.209,1.15,1.25,kWh/kWac per kWh/kWp,Derived,S35;S41,Point value derived in model from Sakaka 2022 output over PVGIS tracked yield; range covers DC/AC and loss differences across plants
+YIELD_CAL_RANGE,Tech,Yield calibration factor range,1.209,1.15,1.35,kWh/kWac per kWh/kWp,Derived,S35;S41,Point value derived in model from Sakaka 2022 output over PVGIS tracked yield; high end allows for newer bifacial plants with DC/AC near 1.4
 DEGR,Tech,Annual output degradation,0.004,0.003,0.006,per yr,Assumed,,n-type bifacial module warranties
 OPEX,Tech,All-in O&M incl. insurance,8.0,6.0,12.0,USD/kWac-yr,Assumed,S21,GW-scale O&M below IRENA's non-OECD benchmark of USD 11.23/kWdc-yr
 OPEX_ESC,Tech,O&M escalation,0.02,0.015,0.03,per yr,Assumed,,
