@@ -734,7 +734,7 @@ def build(out=OUT):
                   "capacity factor and financing?")
     ws["D3"].alignment = Alignment(wrap_text=True, vertical="top")
     ws.row_dimensions[3].height = 54
-    put(ws, "B5", "Key outputs", bold=True)
+    put(ws, "B5", "Headline outputs", bold=True)
     key = [
         ("Najran awarded tariff (USc/kWh)", "=T_NAJRAN", CENTS),
         ("Najran real-equivalent tariff (USc/kWh)", "=REAL_NAJRAN", CENTS),
