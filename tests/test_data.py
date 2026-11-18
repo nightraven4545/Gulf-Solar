@@ -5,7 +5,7 @@ DATA = Path(__file__).resolve().parents[1] / "data"
 
 
 def load(name):
-    return list(csv.DictReader(open(DATA / name)))
+    return list(csv.DictReader((DATA / name).read_text().splitlines()))
 
 
 def test_every_reference_resolves():

@@ -1,6 +1,6 @@
 id,section,parameter,value,low,high,unit,type,source_id,rationale
-FX,Macro,SAR per USD,3.75,3.75,3.75,SAR/USD,Reported,S14,Fixed peg; halala and US cent figures in S14 imply exactly 3.75
-CPI,Macro,Long-run US inflation,0.023,0.020,0.030,per yr,Assumed,,Used only to restate flat nominal tariffs in real terms
+FX_SAR,Macro,SAR per USD,3.75,3.75,3.75,SAR/USD,Reported,S14,Fixed peg; halala and US cent figures in S14 imply exactly 3.75
+US_CPI,Macro,Long-run US inflation,0.023,0.020,0.030,per yr,Assumed,,Used only to restate flat nominal tariffs in real terms
 CAPEX,Tech,Capex (2025-26 vintage KSA utility PV),520,450,650,USD/kWac,Derived,S43;S18;S23,"Disclosed 2025 costs: USD 500/kWac (ACWA PIF projects) and USD 550/kWac (Al Sadawi); bottom-up build at 2026 module prices gives ~USD 490"
 SAKAKA_GWH,Tech,Sakaka measured output 2022,932,932,932,GWh,Reported,S41;S42,Calibrates PVGIS yield to delivered AC energy
 SAKAKA_MW,Tech,Sakaka capacity,300,300,300,MWac,Reported,S01,
@@ -8,14 +8,15 @@ YIELD_CAL_RANGE,Tech,Yield calibration factor range,1.209,1.15,1.35,kWh/kWac per
 DEGR,Tech,Annual output degradation,0.004,0.003,0.006,per yr,Assumed,,n-type bifacial module warranties
 OPEX,Tech,All-in O&M incl. insurance,8.0,6.0,12.0,USD/kWac-yr,Assumed,S21,GW-scale O&M below IRENA's non-OECD benchmark of USD 11.23/kWdc-yr
 OPEX_ESC,Tech,O&M escalation,0.02,0.015,0.03,per yr,Assumed,,
-PPA_YEARS,Tech,PPA term (SPPC),25,25,25,yr,Reported,S09;S18,No merchant tail in base case
+PPA_YEARS,Tech,PPA term (SPPC),25,20,35,yr,Reported,S09;S18;S43,"SPPC standard is 25 years; 35-year PPAs exist (Shuaibah, Saad 2, Al Kahfah); no merchant tail"
 DCAC,Tech,DC/AC ratio,1.30,1.20,1.40,ratio,Assumed,,Only used to put IRENA (per kWdc) and KSA (per kWac) on one basis
 BASE_RATE,Finance,USD long-term swap rate,0.040,0.035,0.045,per yr,Assumed,,No free swap curve; mid-2026 level assumption
 MARGIN,Finance,Senior debt margin (KSA IPP),0.0125,0.0100,0.0175,per yr,Assumed,,Sovereign-backed offtaker; deep regional and ECA bank market
 TENOR,Finance,Debt tenor,22,18,25,yr,Assumed,,Inside the 25-year PPA
 DSCR,Finance,Minimum DSCR (sculpting),1.20,1.15,1.30,x,Assumed,,Contracted solar with sovereign-backed buyer
 GEAR_MAX,Finance,Maximum gearing,0.80,0.70,0.85,share of capex,Derived,S16;S20,Observed 72% (15 GW portfolio) and 78% (Haden/Muwayh/Khushaybi)
-TAX,Finance,Effective tax rate on profit,0.10,0.025,0.20,share,Assumed,S22,Blend of 20% corporate tax on foreign shareholders and 2.5% Zakat on Saudi shareholders
+GEAR_WACC,Finance,Gearing used in WACC,0.75,0.70,0.80,share of capex,Derived,S16;S20,Midpoint of observed 72-78%
+TAX_KSA,Finance,Effective tax rate on profit,0.10,0.025,0.20,share,Assumed,S22,Blend of 20% corporate tax on foreign shareholders and 2.5% Zakat on Saudi shareholders
 DEP_YEARS,Finance,Tax depreciation life,25,20,30,yr,Assumed,,Straight line over the PPA
 EQ_HURDLE,Finance,Sponsor equity hurdle (nominal),0.09,0.07,0.12,per yr,Assumed,,Range of what strategic sponsors accept on contracted GCC assets
 CRP_KSA,Finance,Country risk premium Saudi Arabia (Aa3),0.0078,0.0078,0.0078,share,Reported,S22,

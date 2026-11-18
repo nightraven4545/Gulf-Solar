@@ -1,10 +1,18 @@
 import pytest
 
-from nrep.lcoe import (implied_capex, irr, lcoe, project_cash_flows, project_finance,
-                       pv_factor, real_from_flat, shapley)
+from nrep.lcoe import (
+    implied_capex,
+    irr,
+    lcoe,
+    project_cash_flows,
+    project_finance,
+    pv_factor,
+    real_from_flat,
+    shapley,
+)
 
-CASE = dict(capex=520.0, energy=3200.0, opex=8.0, years=25, degr=0.004, opex_esc=0.02,
-            tax=0.10, dep_years=25)
+CASE = {"capex": 520.0, "energy": 3200.0, "opex": 8.0, "years": 25, "degr": 0.004, "opex_esc": 0.02,
+        "tax": 0.10, "dep_years": 25}
 
 
 def test_pv_factor_matches_brute_force():
@@ -36,7 +44,7 @@ def test_flat_tariff_is_cheaper_in_real_terms():
 
 
 def test_shapley_parts_sum_to_total():
-    f = lambda x: x["a"] * x["b"] / (x["c"] + 1)  # noqa: E731
+    f = lambda x: x["a"] * x["b"] / (x["c"] + 1)
     start, end = {"a": 1.0, "b": 2.0, "c": 0.5}, {"a": 3.0, "b": 0.5, "c": 2.0}
     assert sum(shapley(f, start, end).values()) == pytest.approx(f(end) - f(start))
 

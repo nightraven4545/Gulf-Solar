@@ -46,7 +46,7 @@ def project_cash_flows(tariff, capex, energy, opex, years, degr=0.0, opex_esc=0.
 
 def irr(flows, lo=-0.99, hi=1.0):
     """Bisection; assumes one sign change, which holds for build-then-operate flows."""
-    npv = lambda r: sum(cf / (1 + r) ** t for t, cf in enumerate(flows))  # noqa: E731
+    npv = lambda r: sum(cf / (1 + r) ** t for t, cf in enumerate(flows))
     if npv(lo) * npv(hi) > 0:
         return None
     for _ in range(200):

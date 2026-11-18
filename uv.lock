@@ -146,7 +146,6 @@ source = { editable = "." }
 dependencies = [
     { name = "openpyxl" },
     { name = "python-pptx" },
-    { name = "xlsxwriter" },
 ]
 
 [package.dev-dependencies]
@@ -159,7 +158,6 @@ dev = [
 requires-dist = [
     { name = "openpyxl" },
     { name = "python-pptx" },
-    { name = "xlsxwriter" },
 ]
 
 [package.metadata.requires-dev]
