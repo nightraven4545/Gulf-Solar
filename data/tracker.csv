@@ -16,7 +16,10 @@ NAJRAN,Najran,KSA,SPPC,SPPC,R6,PV,1400,1.09682,4.11307,,award,2025-10,Masdar,Mas
 ADDARB,Ad Darb,KSA,SPPC,SPPC,R6,PV,600,1.36070,5.10262,,award,2025-10,Masdar,Masdar,Jazan,17.72,42.25,town,25,development,Y,S14,
 SAMTAH,Samtah,KSA,SPPC,SPPC,R6,PV,600,1.48678,5.57544,,award,2025-10,Saudi Electricity Company / EDF,SEC / EDF,Jazan,16.60,42.94,town,25,development,Y,S14,
 SUFUN,As Sufun,KSA,SPPC,SPPC,R6,PV,400,1.50686,5.65074,,award,2025-10,Al Jomaih Energy & Water / TotalEnergies,AEW / TotalEnergies,Hail,27.52,41.69,province,25,development,Y,S14,Site proxied by Hail city
-R7PV,Round 7 (four PV projects),KSA,SPPC,SPPC,R7,PV,3100,,,,pending,2026-09,,,,,,,25,bidding,N,S37;S38,Bids submitted; no award announced as of 2026-11-18
+TABARJAL2,Tabarjal II,KSA,SPPC,SPPC,R7,PV,1400,,,,pending,2026-09,,,Al Jouf,30.50,38.22,town,25,bidding,N,S37;S38;S66;S67,Bids submitted 13 September 2026; no award announced as of 2026-11-19
+MAWQAQ,Mawqaq,KSA,SPPC,SPPC,R7,PV,600,,,,pending,2026-09,,,Hail,27.39,41.18,town,25,bidding,N,S37;S38;S66;S67,Bids submitted 13 September 2026; no award announced as of 2026-11-19
+TATHLEETH,Tathleeth,KSA,SPPC,SPPC,R7,PV,600,,,,pending,2026-09,,,Aseer,19.53,43.49,town,25,bidding,N,S37;S38;S66;S67,Bids submitted 13 September 2026; no award announced as of 2026-11-19
+ALULAS,South Al Ula,KSA,SPPC,SPPC,R7,PV,500,,,,pending,2026-09,,,Madinah,26.2,38.0,approx,25,bidding,N,S37;S38;S66;S67,"Bids submitted 13 September 2026; no award announced as of 2026-11-19; site south of Al Ula town, exact location not published. Open ground 20-30 km south yields 2,584-2,676 kWh/kWp in PVGIS; the town itself sits in shaded terrain (2,445)"
 R8PV,Round 8 (PV),KSA,SPPC,SPPC,R8,PV,1900,,,,pending,2026-11,,,,,,,,RFQ,N,S39,Request for qualification
 SUDAIR,Sudair,KSA,SPPC,PIF,,PV,1500,1.239,,,PPA,2021-04,ACWA Power / Badeel / SAPCO,ACWA Power,Riyadh,25.85,45.40,approx,25,operating,Y,S36;S17;S43,Directly negotiated
 ARRASS2,Ar Rass 2,KSA,SPPC,PIF,,PV,2000,,,,undisclosed,2023-05,ACWA Power / Badeel,ACWA Power,Qassim,,,,35,construction,N,S19,Tariff not disclosed
@@ -35,4 +38,7 @@ DHAFRA,Al Dhafra,UAE,EWEC,IPP tender,,PV,2000,1.32,,,PPA,2020-12,TAQA / Masdar /
 MBR5,MBR Solar Park Phase 5,UAE,DEWA,IPP tender,,PV,900,1.6953,,,PPA,2019-11,ACWA Power-led,ACWA Power,Dubai,24.76,55.37,town,25,operating,Y,S30,Comparator
 MBR6,MBR Solar Park Phase 6,UAE,DEWA,IPP tender,,PV,1800,1.6215,,,PPA,2023,Masdar,Masdar,Dubai,24.76,55.37,town,25,operating,Y,S29,Comparator
 KHARSAAH,Al Kharsaah,Qatar,KAHRAMAA,IPP tender,,PV,800,1.567,,,PPA,2020-01,Total / Marubeni,TotalEnergies,Qatar,25.28,51.03,approx,25,operating,Y,S28,Comparator; reported lower at financial close
+IBRI2,Ibri II,Oman,Nama PWP,IPP tender,,PV,500,,,,undisclosed,2019-03,ACWA Power / Gulf Investment Corporation / Alternative Energy Projects Co.,ACWA Power,Ad Dhahirah,23.23,56.51,town,15,operating,N,S60;S61,USD 400m (USD 800/kWac); debt USD 275m at 70:30; Marubeni and Masdar also bid; inaugurated January 2022; tariff not published
+MANAH1,Manah I,Oman,Nama PWP,IPP tender,,PV,500,,,,undisclosed,2023-03,EDF Renewables / Korea Western Power (KOWEPO),EDF / KOWEPO,Ad Dakhiliyah,22.8,57.6,approx,20,operating,N,S62;S63,USD 459m (about USD 920/kWac); EPC Shanghai Electric; operating from mid-2025; tariff not published
+MANAH2,Manah II,Oman,Nama PWP,IPP tender,,PV,500,,,,undisclosed,2023-03,Sembcorp Utilities / Jinko Power,Sembcorp,Ad Dakhiliyah,22.8,57.6,approx,20,operating,N,S64;S65,"588 MWp; commercial operation 30 December 2024, four months early; cost and tariff not published"
 IBRI3,Ibri III (500 MW PV + 100 MWh BESS),Oman,Nama PWP,IPP tender,,PV+BESS,500,,,,undisclosed,2025-09,Masdar / Al Khadra / KOMIPO / OQ Alternative Energy,Masdar,Ad Dhahirah,23.23,56.51,town,,construction,N,S25;S26,Oman does not publish renewable IPP tariffs
