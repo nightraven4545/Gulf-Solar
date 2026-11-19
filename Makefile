@@ -1,6 +1,6 @@
 MODEL := model/NREP_Tariff_LCOE_Model.xlsx
 
-.PHONY: data model deck check all
+.PHONY: data model deck site check all
 
 data:
 	uv run python -m nrep.fetch
@@ -18,6 +18,13 @@ deck:
 	soffice --headless --convert-to pdf --outdir deck deck/NREP_Tariff_Replicability.pptx >/dev/null
 	soffice --headless --convert-to pdf --outdir onepager onepager/NREP_onepager.pptx >/dev/null
 	pdftoppm -f 15 -l 15 -r 110 -png -singlefile deck/NREP_Tariff_Replicability.pdf docs/waterfall
+
+# The web case page reads JSON exported from the recalculated workbook; Vercel builds web/ only.
+site:
+	uv run python -m nrep.export_site
+	npm --prefix web ci
+	npm --prefix web test
+	npm --prefix web run build
 
 check:
 	uv run ruff check src tests
