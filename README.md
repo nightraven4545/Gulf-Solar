@@ -31,6 +31,7 @@ Weighted by capacity, the central case is 1.23 ¢. Awards above the range would 
 
 | Path | What it is |
 |---|---|
+| `web/` | The case page and live tariff calculator (Next.js static export on Vercel). `src/nrep/export_site.py` writes its data from the recalculated workbook, and a test checks that the calculator reproduces the workbook to nine decimal places |
 | `model/NREP_Tariff_LCOE_Model.xlsx` | The model. 18 tabs, live formulas, no macros. Start on the Cover tab |
 | `deck/NREP_Tariff_Replicability.pptx` and `.pdf` | 28 slides: 22 in three sections (what Saudi Arabia built, what the bids imply, what Oman can copy) plus a 6-slide appendix. Every number is read from the model |
 | `onepager/NREP_onepager.pdf` | One-page summary |
@@ -76,6 +77,18 @@ make data     # pull PVGIS site and grid yields (and KAPSARC's project list) int
 make model    # build the workbook and recalculate it
 make deck     # draw the map, then build the deck and one-pager from the recalculated workbook
 make check    # lint and tests
+make site     # export the web data, test the calculator and build the case page
 ```
+
+## Design notes for the web page
+
+The page borrows working patterns from public energy-data sites, not their code or branding:
+
+- Our World in Data's Grapher: each exhibit states its finding in the title and carries a source line, a table view and a CSV download.
+- Ember's Electricity Data Explorer: a plain white layout with the headline number above the chart.
+- The World Bank's Global Solar Atlas: the yellow-to-orange PVOUT scale for the yield map.
+- Global Energy Monitor's Global Solar Power Tracker: filled markers for awarded plants, rings for sites still bidding.
+- NREL's LCOE calculators: inputs grouped as cost, performance and finance, with the formula shown.
+- Lazard's LCOE+ report: low-to-high range bars for the Round 7 forecast and the Oman cases.
 
 Code is MIT licensed. Data files are compiled from the public sources listed in `data/sources.csv`; cite those sources when reusing figures. Country borders on the map are from Natural Earth (public domain).

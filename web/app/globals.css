@@ -1,0 +1,142 @@
+/* Tokens: the deck's palette. Series hues mark buying tracks; the sun ramp is reserved for the resource map. */
+:root {
+  color-scheme: light;
+  --paper: #ffffff;
+  --wash: #f3f5f7;
+  --rule: #d9dee3;
+  --ink: #1f2a36;
+  --ink-2: #47515c;
+  --muted: #66707b;
+  --amber: #c2780b;
+  --blue: #3a5fa8;
+  --teal: #1a9a8a;
+  --grey: #a3acb5;
+  --sun-0: #fff4dc;
+  --sun-1: #f2c46e;
+  --sun-2: #c2780b;
+  --focus: #3a5fa8;
+  --serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Archivo Variable", "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --page: 1120px;
+  --gutter: 24px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+}
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+p { margin: 0 0 1em; }
+
+.wrap { max-width: var(--page); margin: 0 auto; padding: 0 var(--gutter); }
+.prose { max-width: 66ch; }
+.sans { font-family: var(--sans); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Site bar */
+.bar { border-bottom: 1px solid var(--rule); font-family: var(--sans); font-size: 15px; }
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; padding-top: 14px; padding-bottom: 14px; }
+.bar strong { font-weight: 650; letter-spacing: -0.01em; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+
+/* Hero: the award as SPPC publishes it, to five decimals */
+.hero { padding: 56px 0 24px; }
+.award-kicker { font-family: var(--sans); font-size: 15px; color: var(--ink-2); margin: 0 0 4px; }
+.award {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-stretch: 72%;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(72px, 15vw, 168px);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.award .unit { display: block; font-size: 15px; font-weight: 500; font-stretch: 100%; letter-spacing: 0; color: var(--muted); margin-top: 10px; }
+h1 {
+  font-family: var(--sans);
+  font-weight: 650;
+  font-stretch: 88%;
+  font-size: clamp(30px, 4.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  max-width: 24ch;
+  margin: 40px 0 16px;
+}
+.dek { font-size: 21px; line-height: 1.5; color: var(--ink-2); }
+.findings { list-style: none; margin: 32px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.findings li { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.findings b { font-family: var(--sans); font-weight: 650; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 28px 0 0; font-family: var(--sans); font-size: 16px; }
+
+/* Parts A, B, C: the three steps of the argument */
+.part { margin-top: 88px; }
+.part-head { position: relative; }
+.part-letter { font-family: var(--sans); font-weight: 700; font-size: 18px; color: var(--muted); margin: 0; }
+h2 { font-family: var(--sans); font-weight: 650; font-stretch: 90%; font-size: clamp(26px, 3.2vw, 32px); line-height: 1.15; letter-spacing: -0.01em; margin: 4px 0 16px; max-width: 30ch; }
+@media (min-width: 1240px) {
+  .part-letter { position: absolute; left: -64px; top: -6px; font-size: 44px; color: var(--ink); }
+}
+
+/* Exhibit frame (after Our World in Data's Grapher): finding as title, units, chart, source, table, data */
+.exhibit { margin: 48px 0 0; border-top: 2px solid var(--ink); padding-top: 12px; }
+.exhibit-n { font-family: var(--sans); font-size: 14px; color: var(--muted); margin: 0; }
+.exhibit h3 { font-family: var(--sans); font-weight: 650; font-size: 21px; line-height: 1.3; letter-spacing: -0.005em; margin: 2px 0 4px; max-width: 64ch; }
+.exhibit .sub { font-family: var(--sans); font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.badge { display: inline-block; font-family: var(--sans); font-size: 13px; font-weight: 600; background: var(--sun-0); border: 1px solid var(--sun-1); padding: 2px 8px; border-radius: 3px; margin: 0 0 10px; }
+.chart { width: 100%; min-height: 240px; }
+.chart svg { display: block; max-width: 100%; height: auto; }
+.exhibit-foot { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 13px; color: var(--muted); }
+.exhibit-foot .actions { display: flex; gap: 16px; }
+.textbtn { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--sans); font-size: 13px; color: var(--ink-2); margin: 0 0 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.ring { background: none !important; border: 2px solid var(--amber); border-radius: 50%; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--ink); }
+td.n, th.n { text-align: right; }
+table.wide { min-width: 760px; }
+
+/* Calculator (after NREL's LCOE calculators: inputs grouped as cost, performance, finance) */
+.calc { display: grid; gap: 32px; margin-top: 24px; font-family: var(--sans); }
+@media (min-width: 900px) { .calc { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; }
+.preset { font: inherit; font-family: var(--sans); font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; padding: 6px 10px; cursor: pointer; }
+.preset[aria-pressed="true"] { border-color: var(--ink); background: var(--wash); font-weight: 600; }
+fieldset { border: 0; margin: 0 0 16px; padding: 0; }
+legend { font-weight: 650; font-size: 15px; margin-bottom: 4px; }
+.field { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; padding: 6px 0; font-size: 14px; }
+.field output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.field input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--ink); }
+.field select { grid-column: 1 / -1; font: inherit; padding: 4px; }
+.result-n { font-weight: 700; font-stretch: 75%; font-variant-numeric: tabular-nums; font-size: 64px; line-height: 1; margin: 4px 0 6px; }
+.result-sub { color: var(--ink-2); font-size: 15px; margin: 0 0 16px; }
+.scale text { font-family: var(--sans); font-size: 12px; fill: var(--ink-2); }
+details { font-size: 15px; margin-top: 12px; }
+details summary { cursor: pointer; font-weight: 600; }
+code { font-size: 14px; }
+
+/* Method and footer */
+.method ul { padding-left: 1.2em; }
+.foot { margin-top: 96px; border-top: 1px solid var(--rule); padding: 20px 0 48px; font-family: var(--sans); font-size: 14px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  :root { --gutter: 16px; }
+  body { font-size: 17px; }
+  .dek { font-size: 19px; }
+  .hero { padding-top: 32px; }
+  .part { margin-top: 64px; }
+}
