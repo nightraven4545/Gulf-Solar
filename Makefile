@@ -13,10 +13,11 @@ model:
 	mv build/$(notdir $(MODEL)) $(MODEL)
 
 deck:
+	uv run python -m nrep.build_map
 	uv run python -m nrep.build_deck
 	soffice --headless --convert-to pdf --outdir deck deck/NREP_Tariff_Replicability.pptx >/dev/null
 	soffice --headless --convert-to pdf --outdir onepager onepager/NREP_onepager.pptx >/dev/null
-	pdftoppm -f 9 -l 9 -r 110 -png -singlefile deck/NREP_Tariff_Replicability.pdf docs/waterfall
+	pdftoppm -f 15 -l 15 -r 110 -png -singlefile deck/NREP_Tariff_Replicability.pdf docs/waterfall
 
 check:
 	uv run ruff check src tests

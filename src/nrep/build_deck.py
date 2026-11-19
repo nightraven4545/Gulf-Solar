@@ -1,5 +1,6 @@
 """Build the deck and one-pager from the recalculated workbook. Every number on a slide is read from the model."""
 
+import csv
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -102,9 +103,11 @@ class Deck:
         self.blank = self.prs.slide_layouts[6]
         self.n = 0
 
-    def slide(self, title, source, notes="", tag=True):
+    def slide(self, title, source, notes="", tag=True, section=None):
         s = self.prs.slides.add_slide(self.layout)
         self.n += 1
+        if section:
+            text(s, 0.5, 0.07, 9.0, 0.3, [section], size=10, color=AMBER, bold=True)
         tf = s.shapes.title.text_frame
         tf.word_wrap = True
         tf.vertical_anchor = MSO_ANCHOR.TOP
@@ -283,8 +286,13 @@ def build(path=DECK):
     gw_pif = sum(r["MWac"] for r in ksa_pv if r["Track"] == "PIF") / 1000
     gap = wf["IRENA global average 2025"] - wf["Najran, real equivalent"]
     share = lambda k: -wf[k] / gap
+    y_by = {r["ID"]: r["PVGIS yield kWh/kWp-yr"] for r in m.table("Yield", 4)}
+    tor_map = {r[0]: r for r in m.rows("TORNADO")}
+    moves_m = m["OMN_IMP_MOVES_2031"]
+    sec_a, sec_b, sec_c = ("A  What Saudi Arabia built, and what it is worth", "B  What the bids imply",
+                           "C  What Oman can copy")
 
-    # 1 Title --------------------------------------------------------------
+    # Title --------------------------------------------------------------
     d.dark([
         ("Can Oman match Saudi Arabia's record solar tariffs?", {"size": 34, "bold": True, "color": WHITE}),
         ("What drives a 1.1 ¢/kWh bid, and which parts of it travel", {"size": 20, "color": WHITE, "space_after": 30}),
@@ -292,8 +300,8 @@ def build(path=DECK):
     ], notes="Case: a Gulf utility (Oman's Nama PWP) asks whether Saudi tariffs are replicable. "
              "Everything here is built from public data; the Excel model carries every number and source.")
 
-    # 2 Executive summary ---------------------------------------------------
-    s = d.slide("Saudi tariffs rest 60/35 on sunshine and cost versus returns few investors would accept; "
+    # Executive summary ---------------------------------------------------
+    s = d.slide("Saudi Arabia's 1.1 ¢ bids rest on rich sunshine, cheap hardware and returns few investors would accept; "
                 "Oman can copy the design and still beat gas",
                 "Source: model Cover and Bridge tabs; SPPC awards via TaiyangNews (S14); ACWA Power investor report FY2025 (S43); "
                 "IRENA Renewable Power Generation Costs in 2025 (S21)",
@@ -303,34 +311,38 @@ def build(path=DECK):
                       f"1.0 to 1.8 ¢/kWh, about a quarter of IRENA's 4.4 ¢ global average.")),
         ("Complication", (f"At the 2025 disclosed cost of USD {disc25:.0f}/kWac, Najran's {t_naj:.2f} ¢ bid returns "
                          f"{irr_naj:.1%} before leverage, below the {kd:.2%} cost of debt.")),
-        ("A. The record is real", (f"In real terms Najran is {real_naj:.2f} ¢; IRENA's own Saudi average is 4.0 ¢. "
-                                   "A flat 25-year tariff is not a cost.")),
+        ("A. The record is real, and it pays",
+         (f"In real terms Najran is {real_naj:.2f} ¢. The {m['IMP_OP_GW']:.1f} GW now running frees about "
+          f"{m['IMP_OP_KBD']:.0f} kb/d of crude, worth {m['IMP_OP_RATIO']:.1f} times what SPPC pays for the power.")),
         ("B. About a third is accepted return",
-         (f"Of the USD {gap:.0f}/MWh gap to the global average, yield and capex explain "
-         f"{share('Energy yield') + share('Capex'):.0%} and the return sponsors accept {share('Return accepted (and life)'):.0%}.")),
-        ("C. Oman can copy the design", (f"With credit support, GW-scale tenders and 25-year PPAs, Oman reaches "
-                                        f"{cents(cases[2])}, below the {cents(gas, 1)} fuel cost of gas power.")),
+         (f"Yield and capex explain {share('Energy yield') + share('Capex'):.0%} of the gap to the global average, "
+          f"accepted return {share('Return accepted (and life)'):.0%}. Najran costs {cents(m['VC_PRE_FIN'])} before any "
+          f"return, leaving {cents(m['VC_LEFT'])} for capital.")),
+        ("C. Oman can copy the design", (f"Credit support, GW-scale tenders and 25-year PPAs take Oman to "
+                                        f"{cents(cases[2])}, below the {cents(gas, 1)} fuel cost of gas power, a saving "
+                                        f"of about USD {moves_m:.0f}m a year by 2031.")),
     ]
-    y = 1.55
+    y = 1.5
     for head, body in lines:
-        text(s, 0.5, y, 2.6, 0.9, [(head, {"bold": True, "color": AMBER if head[1] == "." else INK})], size=14)
-        text(s, 3.1, y, 5.9, 0.95, [body], size=14)
-        y += 1.0
+        text(s, 0.5, y, 2.6, 0.95, [(head, {"bold": True, "color": AMBER if head[1] == "." else INK})], size=14)
+        text(s, 3.1, y, 5.9, 1.0, [body], size=14)
+        y += 1.06
     stats = [(cents(t_naj), "Najran tariff, Oct 2025 (record low in Round 6)"),
              (f"{irr_naj:.1%}", f"Najran return before leverage at USD {disc25:.0f}/kWac"),
+             (f"{m['IMP_OP_KBD']:.0f} kb/d", "Crude freed by the solar fleet now running"),
              (cents(cases[2]), "Oman with Saudi-style tender design")]
     for i, (big, small) in enumerate(stats):
-        yy = 1.55 + i * 1.7
-        text(s, 9.5, yy, 3.3, 0.8, [(big, {"size": 40, "bold": True, "color": [AMBER, AMBER, TEAL][i]})])
-        text(s, 9.5, yy + 0.8, 3.3, 0.7, [small], size=12, color=TEXT2)
+        yy = 1.5 + i * 1.32
+        text(s, 9.5, yy, 3.3, 0.65, [(big, {"size": 34, "bold": True, "color": [AMBER, AMBER, AMBER, TEAL][i]})])
+        text(s, 9.5, yy + 0.66, 3.3, 0.6, [small], size=12, color=TEXT2)
 
-    # 3 Programme ----------------------------------------------------------
+    # Programme ----------------------------------------------------------
     s = d.slide(f"Saudi Arabia has contracted {gw_sppc + gw_pif:.0f} GW of utility solar through two buying tracks, "
                 f"{gw_pif / (gw_pif + gw_sppc):.0%} of it negotiated with PIF-backed ACWA consortia",
                 f"Source: model Tracker tab ({len(tr)} projects); SPPC, ACWA Power, Masdar and trade press releases (S01-S43). "
                 "PV only; excludes Category A plants under 150 MW; Round 7 (3.1 GW) and Round 8 (1.9 GW) pending",
                 notes="SPPC runs competitive rounds; PIF projects are negotiated with ACWA Power, Badeel (PIF) and SAPCO (Aramco). "
-                      "Both sell to SPPC under 25-year PPAs (35 years for three 2023 projects).")
+                      "Both sell to SPPC under 25-year PPAs (35 years for three 2023 projects).", section=sec_a)
     by = defaultdict(lambda: [0.0, 0.0])
     for r in ksa_pv:
         by[int(str(r["Date"])[:4])][0 if r["Track"] == "SPPC" else 1] += r["MWac"] / 1000
@@ -358,13 +370,39 @@ def build(path=DECK):
         ("Round 7 (3.1 GW PV) bids are in; Round 8 (1.9 GW) is at RFQ", {"bullet": True}),
     ], size=14)
 
-    # 4 Tariff history -----------------------------------------------------
+    # Map ------------------------------------------------------------------
+    grid = list(csv.DictReader((ROOT / "data" / "yield_grid.csv").read_text().splitlines()))
+    cells = {c: sorted(float(g["yield_kwh_kwp_yr"]) for g in grid if g["country"] == c) for c in ("SAU", "OMN")}
+    beats = lambda v, c: sum(x < v for x in cells[c]) / len(cells[c])
+    s = d.slide(f"Sunshine is strongest inland and in the north-west; Najran ranks in the top "
+                f"{1 - beats(y_by['NAJRAN'], 'SAU'):.0%} of Saudi sites, while Oman's Ibri would rank in the bottom "
+                f"{beats(y_by['IBRI3'], 'SAU'):.0%}",
+                f"Source: PVGIS 5.3 (SARAH3) single-axis tracked yield at {len(grid)} points on a 1° grid (S35), "
+                "data/yield_grid.csv; projects and tariffs from the model Tracker and Engine tabs; borders from Natural Earth",
+                notes="Each cell is a PVGIS query for a horizontal single-axis tracker. The two Round 6 plants with the best "
+                      "and worst sites are 300 km apart. Oman's best resource is in Dhofar, far from the northern grid.",
+                section=sec_a)
+    s.shapes.add_picture(str(ROOT / "docs" / "map.png"), Inches(0.5), Inches(1.4), height=Inches(5.4))
+    text(s, 7.4, 1.6, 5.4, 5.1, [
+        ("What the map says", {"bold": True}),
+        ((f"Tracked yield runs from {cells['SAU'][0]:,.0f} to {cells['SAU'][-1]:,.0f} kWh/kWp a year across Saudi "
+         "Arabia: highest in the north-west, lowest over the south-western mountains and in the north-east"),
+         {"bullet": True}),
+        ((f"Round 6 spans the range: Najran ({y_by['NAJRAN']:,.0f}) beats {beats(y_by['NAJRAN'], 'SAU'):.0%} of Saudi "
+         f"cells, coastal Samtah ({y_by['SAMTAH']:,.0f}) only {beats(y_by['SAMTAH'], 'SAU'):.0%}"), {"bullet": True}),
+        ((f"Oman's best cells, in the Dhofar interior ({cells['OMN'][-1]:,.0f}), match Najran but sit far from northern "
+         f"demand; Ibri ({y_by['IBRI3']:,.0f}) beats only {beats(y_by['IBRI3'], 'OMN'):.0%} of Oman's cells"),
+         {"bullet": True}),
+        ("Bubbles are awarded PV plants sized by capacity; labels give the tariff in ¢/kWh", {"bullet": True}),
+    ], size=14)
+
+    # Tariff history -------------------------------------------------------
     s = d.slide("Awarded tariffs hit 1.04 ¢ in 2021 and have stayed between 1.1 and 1.8 ¢ since, between a quarter "
                 "and two-fifths of IRENA's 4.4 ¢ global average",
                 "Source: model Tracker and Engine tabs; IRENA RPGC 2025 (S21) global and Saudi weighted-average LCOE for "
                 "projects commissioned in 2025 (real USD). Tariffs are flat nominal USc/kWh for the PPA term",
                 notes="Each dot is an award. Saudi tariffs flattened as module prices rose in 2021-23 and interest rates rose; "
-                      "falling module prices in 2024-25 brought them back down to 1.1-1.3 cents.")
+                      "falling module prices in 2024-25 brought them back down to 1.1-1.3 cents.", section=sec_a)
     xy = XyChartData()
     groups = [("SPPC tenders", lambda r: r["Track"] == "SPPC", AMBER),
               ("PIF bilateral", lambda r: r["Track"] == "PIF", BLUE),
@@ -407,13 +445,124 @@ def build(path=DECK):
         ("IRENA's averages are real LCOEs for plants commissioned in 2025, not bids", {"bullet": True}),
     ], size=14)
 
-    # 5 Tariff vs LCOE -----------------------------------------------------
+    # What changed ---------------------------------------------------------
+    yr = {int(r[0]): r for r in m.rows("CHANGES_TABLE")}
+    r21, r25 = yr[2021], yr[2025]
+    per_pt = (tor_map["BASE_RATE"][2] - tor_map["BASE_RATE"][1]) / ((m["BASE_RATE_HI"] - m["BASE_RATE_LO"]) * 100)
+    per_usd = (tor_map["CAPEX"][2] - tor_map["CAPEX"][1]) / (m["CAPEX_HI"] - m["CAPEX_LO"])
+    d_rate, d_cx = (r25[1] - r21[1]) * 100, r25[3] - r21[3]
+    s = d.slide(f"Since 2021 USD rates have risen {d_rate:.1f} points and disclosed costs have fallen "
+                f"{-d_cx / r21[3]:.0%}; cheaper hardware has more than paid for dearer money",
+                "Source: model Changes tab; US 10-year Treasury annual averages from FRED (S50) as a proxy for SAR swap "
+                "rates under the peg; awarded tariffs from the Tracker tab; disclosed cost by vintage from the Capex tab "
+                "(S43, S18). Effects use the slopes on the Sensitivity tab",
+                notes="Rates moved first: 2022-23 tariffs rose while costs were still high. From 2024 cheaper modules and "
+                      "trackers pulled costs down faster than rates rose, and tariffs followed.",
+                section=sec_a)
+    panels = [("US 10-year Treasury, annual average", 1, "0.0%", BLUE, lambda v: f"{v:.1%}"),
+              ("Average Saudi PV tariff awarded (¢/kWh)", 2, "0.00", AMBER, lambda v: f"{v:.2f}"),
+              ("Disclosed Saudi cost by vintage (USD/kWac)", 3, "#,##0", GREY, lambda v: f"{v:.0f}")]
+    for i, (head, col, fmt, c, f_) in enumerate(panels):
+        x = 0.5 + i * 4.2
+        vals = [yr[y][col] for y in yr]
+        text(s, x, 1.5, 3.9, 0.4, [(head, {"bold": True})], size=13)
+        cd = CategoryChartData()
+        cd.categories = [str(y) for y in yr]
+        cd.add_series(head, vals)
+        ch = add_chart(s, XL_CHART_TYPE.COLUMN_CLUSTERED, cd, x, 1.9, 3.9, 3.7)
+        style_chart(ch, size=10)
+        quiet_axes(ch, fmt, 0, max(v for v in vals if v) * 1.2, gridlines=False)
+        ch.value_axis.visible = False
+        ch.category_axis.tick_labels.font.size = Pt(9)
+        ch.plots[0].gap_width = 45
+        ser = ch.plots[0].series[0]
+        fill(ser, c)
+        for j, v in enumerate(vals):
+            if v:
+                label(ser.points[j], f_(v), size=10, pos=XL_LABEL_POSITION.OUTSIDE_END)
+    text(s, 0.5, 5.75, 12.3, 1.05, [
+        ((f"At Najran's site each point on the swap rate adds about {per_pt:.2f} ¢ through the cost of debt, so the rise "
+         f"since 2021 is worth about {d_rate * per_pt:.2f} ¢. The fall in disclosed cost takes off about "
+         f"{-d_cx * per_usd:.2f} ¢. Tariffs peaked in 2023, when rates had risen and costs had not yet fallen."),
+         {"bold": True})], size=14)
+
+    # Delivery and storage ---------------------------------------------------
+    inst, dev, tend = m["KSA_RE_INSTALLED"], m["KSA_RE_DEV"], m["KSA_RE_TENDERED"]
+    fc, tgt = m["KSA_FORECAST_2030"], m["KSA_TARGET_2030"]
+    s = d.slide(f"The constraint has moved from price to delivery: {inst:.0f} GW of renewables is connected against a "
+                f"{tgt:.0f} GW target for 2030, and storage is the next price signal",
+                "Source: model Changes tab; KAPSARC project data and GlobalData forecast via TaiyangNews, Aug 2026 (S45); "
+                "SPPC battery rounds (S46, S47); 2030 battery target (S21); IRENA firm solar-plus-storage cost (S57). "
+                "Solar and wind, GW AC",
+                notes="Contracted is not connected. Even if everything in the pipeline is built, Saudi Arabia is about half way "
+                      "to the target. Batteries are now tendered separately; the next record to watch is for firm power.",
+                section=sec_a)
+    cats = ["Installed (Aug 2026)", "Under development", "Tendered", "GlobalData 2030 forecast", "2030 target"]
+    floating(s, cats, [0, inst, inst + dev, 0, 0], [inst, inst + dev, inst + dev + tend, fc, tgt],
+             [AMBER, AMBER_PALE, GREY, BLUE, INK], 0.5, 1.5, 7.0, 4.4, '0" GW"', 0, 140,
+             labels=[f"{v:g}" for v in (inst, dev, tend, fc, tgt)], gap=45,
+             label_color=[WHITE, INK, INK, WHITE, WHITE], unit=20)
+    text(s, 0.5, 6.0, 7.0, 0.8, [
+        ((f"If the forecast holds, Saudi Arabia ends 2030 {m['DELIVERY_GAP']:.0f} GW short. About "
+          f"{m['KSA_COMMISSION_2026']:.0f} GW is due to connect in 2026."), {"bold": True})], size=14)
+    naj_mwh = t_naj * 10
+    card(s, 7.9, 1.5, 4.9, 3.75, "Storage is the next price signal", [
+        (f"SPPC's first battery round awarded {m['BESS_R1_GWH']:.0f} GWh in 2026; a second round of "
+         f"{m['BESS_R2_GWH']:.0f} GWh is out to tender"),
+        f"The 2030 target is {m['BESS_TARGET_GWH']:.0f} GWh of batteries",
+        (f"IRENA puts firm solar-plus-storage at USD {m['FIRM_LO']:.0f}-{m['FIRM_HI']:.0f}/MWh, "
+         f"{m['FIRM_LO'] / naj_mwh:.0f} to {m['FIRM_HI'] / naj_mwh:.0f} times Najran's PV-only USD {naj_mwh:.0f}"),
+        "Ibri III in Oman already bundles 100 MWh of batteries with its 500 MW of PV",
+    ], accent=TEAL, size=14)
+    text(s, 7.9, 5.45, 4.9, 1.3, [
+        ("The next record to watch is for firm power, not daytime energy; Oman's Ibri III already buys both.",
+         {"bold": True})], size=14)
+
+    # Economic impact ------------------------------------------------------
+    op = {k: m[f"IMP_OP_{k}"] for k in ("GW", "KBD", "SHARE", "VALUE", "VALUE_HI", "COST", "RATIO", "CO2")}
+    ct = {k: m[f"IMP_CT_{k}"] for k in ("GW", "KBD", "SHARE", "VALUE", "VALUE_HI", "COST", "RATIO", "CO2")}
+    s = d.slide(f"The {op['GW']:.1f} GW of solar now running frees about {op['KBD']:.0f} kb/d of crude, "
+                f"{op['SHARE']:.0%} of 2025 burn, worth USD {op['VALUE']:.1f}bn a year against USD {op['COST']:.1f}bn "
+                "of tariffs",
+                f"Source: model Impact tab. Heat rate {m['HR_OIL']:.0f} MMBtu/MWh (S56); {m['BBL_MMBTU']:.1f} MMBtu and "
+                f"{m['CO2_BBL']:.2f} tCO2 per barrel (S49); {m['LIQ_SHARE']:.0%} of output displaces liquids (assumed); "
+                f"crude burn {m['CRUDE_BURN_2025']:.0f} kb/d in 2025 (S44); Brent USD {m['BRENT']:.0f}, severe case "
+                f"{m['BRENT_HI']:.0f} (S32), less USD {m['OIL_DISC']:.0f}; installed capacity (S45)",
+                notes="Why Saudi Arabia accepts any of this: every MWh of solar lets it export crude it would otherwise burn. "
+                      "The ratio is the same for both fleets because both use the same average tariff and yield.",
+                section=sec_a)
+    cd = CategoryChartData()
+    cd.categories = [f"Solar running now ({op['GW']:.1f} GW)", f"All contracted utility PV ({ct['GW']:.1f} GW)"]
+    cd.add_series("Tariffs paid", [op["COST"], ct["COST"]])
+    cd.add_series(f"Oil freed at Brent USD {m['BRENT']:.0f}", [op["VALUE"], ct["VALUE"]])
+    cd.add_series(f"Oil freed at Brent USD {m['BRENT_HI']:.0f} (severe Hormuz case)", [op["VALUE_HI"], ct["VALUE_HI"]])
+    ch = add_chart(s, XL_CHART_TYPE.COLUMN_CLUSTERED, cd, 0.5, 1.5, 7.6, 5.25)
+    style_chart(ch, legend=True)
+    quiet_axes(ch, '"$"0"bn"', 0, 19, gridlines=False)
+    ch.value_axis.visible = False
+    ch.plots[0].gap_width, ch.plots[0].overlap = 60, -5
+    for ser, c in zip(ch.plots[0].series, [GREY, AMBER, AMBER_PALE]):
+        fill(ser, c)
+        for j in range(2):
+            label(ser.points[j], f"${ser.values[j]:.1f}bn", pos=XL_LABEL_POSITION.OUTSIDE_END)
+    stats = [(f"{op['KBD']:.0f} → {ct['KBD']:.0f} kb/d", "Crude freed: fleet running now, then all contracted PV"),
+             (f"{op['SHARE']:.0%} → {ct['SHARE']:.0%}", "Share of 2025 direct crude burn"),
+             (f"{op['RATIO']:.1f}x", f"Oil value per dollar of tariff at Brent USD {m['BRENT']:.0f}"),
+             (f"{op['CO2']:.0f} → {ct['CO2']:.0f} Mt", "CO2 avoided a year")]
+    for i, (big, small) in enumerate(stats):
+        yy = 1.5 + i * 1.1
+        text(s, 8.5, yy, 4.3, 0.55, [(big, {"size": 26, "bold": True, "color": AMBER})])
+        text(s, 8.5, yy + 0.55, 4.3, 0.45, [small], size=12, color=TEXT2)
+    text(s, 8.5, 5.95, 4.3, 0.85, [("Values assume each saved barrel is exported. With Hormuz shut in 2026, that "
+                                    "depends on room on the Red Sea route.")], size=11, color=TEXT2)
+
+    # Tariff vs LCOE -------------------------------------------------------
     s = d.slide(f"A flat nominal tariff hides inflation: in real terms Najran's {t_naj:.2f} ¢ is {real_naj:.2f} ¢, "
                 "a fifth of IRENA's own Saudi average of 4.0 ¢",
                 f"Source: model Engine tab (real equivalent at {m['WACC_KSA']:.1%} nominal WACC and {m['US_CPI']:.1%} "
                 "inflation, COD-year dollars); IRENA RPGC 2025 (S21) Fig. 3.7 and 3.6",
                 notes="A flat 25-year price loses value every year. The constant real price with the same present value is the "
-                      "number to compare with IRENA's real LCOE. IRENA's Saudi average reflects plants bid in 2022-23.")
+                      "number to compare with IRENA's real LCOE. IRENA's Saudi average reflects plants bid in 2022-23.", section=sec_a)
     cd = CategoryChartData()
     cats = ["Najran tariff (flat nominal, 25 yrs)", "Najran, constant real equivalent", "IRENA Saudi average 2025",
             "IRENA global average 2025"]
@@ -439,14 +588,66 @@ def build(path=DECK):
         ("Sovereign-backed single buyer and a USD peg cut the cost of debt", {"bullet": True}),
     ], size=14)
 
-    # 6 Capex --------------------------------------------------------------
+    # Value chain ----------------------------------------------------------
+    vcd = {r[0]: r[1] for r in m.rows("VC_STACK")}
+    pre, left, req = m["VC_PRE_FIN"], m["VC_LEFT"], m["VC_TOTAL"]
+    ret, tax = vcd["Return on capital at the hurdle WACC"], vcd["Tax and Zakat"]
+    parts = [("Modules", ["Modules"]), ("Single-axis trackers", ["Single-axis trackers"]),
+             ("Inverters and MV", ["Inverters and MV"]),
+             ("Balance of system, civils, freight", ["Electrical BoS and civils", "Freight and duties"]),
+             ("EPC margin, development, financing fees",
+              ["Installation and EPC margin", "Development and owner's costs", "Financing fees and IDC"]),
+             ("O&M over 25 years", ["O&M (25 years)"])]
+    s = d.slide(f"Najran costs about {pre:.2f} ¢ to build and run before any return; its {t_naj:.2f} ¢ bid leaves "
+                f"{left:.2f} ¢ for lenders, equity and tax, against {ret + tax:.2f} ¢ at a commercial hurdle",
+                f"Source: model Value_chain tab. Najran at base capex USD {m['CAPEX']:.0f}/kWac, split by the bottom-up "
+                "shares on the Capex tab; cost before return = lifetime capex and O&M over lifetime energy, undiscounted. "
+                "Who captures it: S18, S20, S43, S51-S54",
+                notes="Read top to bottom: what it costs to build and run, then what lenders, equity and the state need on "
+                      "top at a commercial hurdle. The bid covers the first block and very little of the second.",
+                section=sec_b)
+    cats, lows, highs, cols, labs, run = [], [], [], [], [], 0.0
+    for name, keys in parts:
+        v = sum(vcd[k] for k in keys)
+        cats.append(name)
+        lows.append(run)
+        highs.append(run + v)
+        cols.append(GREY)
+        labs.append(f"{v:.2f}")
+        run += v
+    cats += ["Cost before any return", "Return on capital at the hurdle", "Tax and Zakat", "Required at the hurdle WACC",
+             "Najran awarded tariff"]
+    lows += [0, pre, pre + ret, 0, 0]
+    highs += [pre, pre + ret, req, req, t_naj]
+    cols += [INK, AMBER_PALE, AMBER_PALE, INK, AMBER]
+    labs += [f"{pre:.2f}", f"{ret:.2f}", f"{tax:.2f}", f"{req:.2f}", f"{t_naj:.2f}"]
+    floating(s, cats, lows, highs, cols, 0.5, 1.45, 7.2, 5.35, '0.0"¢"', 0, 1.8, labels=labs, gap=35,
+             label_color=[INK] * 6 + [WHITE, INK, INK, WHITE, WHITE], unit=0.2)
+    hw = sum(vcd[k] for k in ("Modules", "Single-axis trackers", "Inverters and MV", "Electrical BoS and civils",
+                              "Freight and duties"))
+    fees = sum(vcd[k] for k in parts[4][1])
+    rows = [["Slice", "Share", "Who captures it"],
+            ["Hardware", f"{hw / req:.0%}", "Chinese makers: LONGi supplied 1.29 GW of modules for L&T's Saudi plant"],
+            ["EPC and fees", f"{fees / req:.0%}", "L&T (Sudair), PowerChina, CPECC (Ibri III); sponsors' development fees"],
+            ["O&M", f"{vcd['O&M (25 years)'] / req:.0%}", "Plant operator, often a sponsor affiliate"],
+            ["Return on capital", f"{ret / req:.0%}", ("Banks (SNB, Riyad Bank, HSBC, KEXIM, Mizuho) and sponsors: "
+                                               "ACWA with PIF's Badeel and Aramco's SAPCO; Masdar")],
+            ["Tax and Zakat", f"{tax / req:.0%}", "The state (ZATCA)"]]
+    text(s, 8.0, 1.5, 4.8, 0.4, [("Share of the required tariff and who earns it", {"bold": True})], size=13)
+    table(s, rows, 8.0, 1.9, 4.8, [1.25, 0.65, 2.9], size=11, row_h=0.5)
+    text(s, 8.0, 5.55, 4.8, 1.2, [
+        ((f"At the bid, capital and tax get {left:.2f} ¢ of the {ret + tax:.2f} ¢ a commercial hurdle needs. The "
+          "rest must come from lower true cost, longer life or earnings on EPC, O&M and development."), {"bold": True})],
+         size=13)
+
+    # Capex ----------------------------------------------------------------
     ff = m.rows("FF_TABLE")
     s = d.slide("Disclosed Saudi costs fell from about USD 620-830/kWac in 2021 to USD 500-550 in 2025, in line "
                 "with a bottom-up build at 2026 module prices",
                 "Source: model Capex tab; ACWA Power FY2025 investor report (S43) total investment cost; Masdar (S18); OPIS "
                 "module price via pv magazine (S23); IRENA RPGC 2025 (S21) converted from per kWdc at DC/AC 1.2-1.4",
                 notes="Four independent views. Disclosed costs may include development fees and margins paid to sponsor "
-                      "affiliates, so the true build cost may be lower still. The last bar is what the tariffs imply.")
+                      "affiliates, so the true build cost may be lower still. The last bar is what the tariffs imply.", section=sec_b)
     cats = [r[0] for r in ff]
     lows, highs, pts_ = [r[4] for r in ff], [r[5] for r in ff], [r[6] for r in ff]
     floating(s, cats, lows, highs, [BLUE, BLUE, AMBER, GREY, INK], 0.5, 1.5, 7.6, 5.2, '"$"#,##0', 0, 1100,
@@ -471,7 +672,7 @@ def build(path=DECK):
     text(s, 8.5, 5.4, 4.3, 1.3, [(f"Implied by 2025 tariffs at the {m['WACC_KSA']:.1%} hurdle: USD {pts_[4]:.0f}/kWac on "
                                  f"average, {1 - pts_[4] / pts_[0]:.0%} below what was disclosed")], size=14, bold=True)
 
-    # 7 IRR dot plot -------------------------------------------------------
+    # IRR dot plot -------------------------------------------------------
     rows7 = sorted([r for r in eng if isinstance(r["Project IRR at disclosed capex"], float) and r["Country"] == "KSA"],
                    key=lambda r: r["Project IRR at disclosed capex"])
     lo_irr, hi_irr = rows7[0]["Project IRR at disclosed capex"], rows7[-1]["Project IRR at disclosed capex"]
@@ -481,7 +682,7 @@ def build(path=DECK):
                 "project's disclosed cost (ACWA S43, Masdar S18) or the Saudi average for its vintage; no merchant tail",
                 notes="If the project earns less than its debt costs, borrowing lowers the equity return. On PF_Model, "
                       "Najran's equity IRR is negative at the disclosed cost. Sponsors must be pricing in lower true costs, "
-                      "a longer life, or earnings outside the project company.")
+                      "a longer life, or earnings outside the project company.", section=sec_b)
     xy = XyChartData()
     s_sppc, s_pif = xy.add_series("SPPC tenders"), xy.add_series("PIF bilateral")
     order = {}
@@ -527,9 +728,69 @@ def build(path=DECK):
         ("State-backed sponsors (PIF, Masdar, SPIC) price for strategic value", {"bullet": True}),
     ], size=14)
 
-    # 8 Sensitivity --------------------------------------------------------
+    # What has to be true --------------------------------------------------
+    wt = m.rows("WHTBT")
+    w_cols = wt[0][1:]
+    lives = {int(r[0]): r[1:] for r in wt[1:]}
+    h_ = min(range(len(w_cols)), key=lambda j: abs(w_cols[j] - m["WACC_KSA"]))
+    lo_life, hi_life = min(lives), max(lives)
+    best = lives[hi_life][0]
+    naj_mw = next(r["MWac"] for r in tr if r["ID"] == "NAJRAN")
+    hole = disc25 - lives[lo_life][h_]
+    s = d.slide(f"No mix of plant life and return in reach gets Najran to its disclosed cost: even {hi_life} years at a "
+                f"{w_cols[0]:.0%} WACC supports only USD {best:.0f}/kWac, against USD {disc25:.0f}",
+                "Source: model Value_chain tab (what has to be true). Capex at which Najran's tariff earns the WACC shown, "
+                "after tax, at Najran's yield; lives beyond 25 years assume the PPA is extended at the same tariff",
+                notes="Each line is a plant life. Moving right raises the return asked for. The dashed line is what the "
+                      "sponsors disclosed. No point on any line reaches it.",
+                section=sec_b)
+    xy = XyChartData()
+    for life in sorted(lives):
+        ser = xy.add_series(f"{life}-year life")
+        for w_, v in zip(w_cols, lives[life]):
+            ser.add_data_point(w_, v)
+    disc_ser = xy.add_series("Disclosed 2025 cost")
+    disc_ser.add_data_point(0.025, disc25)
+    disc_ser.add_data_point(0.075, disc25)
+    ch = add_chart(s, XL_CHART_TYPE.XY_SCATTER_LINES, xy, 0.5, 1.5, 8.0, 5.25)
+    style_chart(ch)
+    quiet_axes(ch, '"$"0', 250, 550)
+    ch.value_axis.major_unit = 50
+    xa = ch.category_axis
+    xa.minimum_scale, xa.maximum_scale, xa.major_unit = 0.02, 0.075, 0.01
+    xa.tick_labels.number_format, xa.tick_labels.number_format_is_linked = "0%", False
+    for ser, c in zip(ch.plots[0].series, [GREY, BLUE, AMBER, INK]):
+        ser.smooth = False
+        ser.format.line.color.rgb = c
+        ser.format.line.width = Pt(2.25)
+        if c == INK:
+            ser.marker.style = XL_MARKER_STYLE.NONE
+            ser.format.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+            ser.format.line.width = Pt(1.5)
+            label(ser.points[0], f"Disclosed 2025 cost: USD {disc25:.0f}", pos=XL_LABEL_POSITION.ABOVE)
+            continue
+        ser.marker.style, ser.marker.size = XL_MARKER_STYLE.CIRCLE, 7
+        ser.marker.format.fill.solid()
+        ser.marker.format.fill.fore_color.rgb = c
+        ser.marker.format.line.color.rgb = WHITE
+    for ser, life in zip(ch.plots[0].series, sorted(lives)):
+        label(ser.points[0], f"{life} yrs: {lives[life][0]:.0f}", size=10, pos=XL_LABEL_POSITION.LEFT)
+    label(ch.plots[0].series[0].points[h_], f"Hurdle {w_cols[h_]:.1%}: {lives[lo_life][h_]:.0f}", size=10,
+          pos=XL_LABEL_POSITION.BELOW, bold=True)
+    text(s, 8.9, 1.6, 3.9, 5.1, [
+        ("What has to be true for the bid to work", {"bold": True}),
+        ((f"At the {w_cols[h_]:.1%} hurdle over {lo_life} years the tariff supports USD {lives[lo_life][h_]:.0f}/kWac: "
+         f"a USD {hole:.0f}/kWac hole, about USD {hole * naj_mw / 1000:.0f}m on Najran's {naj_mw / 1000:.1f} GW"),
+         {"bullet": True}),
+        ((f"A {hi_life}-year life at the same hurdle adds only USD {lives[hi_life][h_] - lives[lo_life][h_]:.0f}; a "
+         f"{w_cols[0]:.0%} WACC adds USD {lives[lo_life][0] - lives[lo_life][h_]:.0f}. Both together still fall USD "
+         f"{disc25 - best:.0f} short"), {"bullet": True}),
+        (("So a third condition must hold: a true build cost well below the disclosed figure, or earnings outside "
+          "the project company"), {"bullet": True}),
+    ], size=14)
+
+    # Sensitivity ----------------------------------------------------------
     tor = sorted(m.rows("TORNADO"), key=lambda r: -r[3])
-    tor_map = {r[0]: r for r in tor}
     names = {"CAPEX": "Capex (USD 450-650/kWac)", "PPA_YEARS": "PPA length (35 / 20 yrs)",
              "YIELD_CAL": "Yield factor (1.15-1.35)", "OPEX": "O&M (USD 6-12/kWac-yr)",
              "EQ_HURDLE": "Equity hurdle (7-12%)", "BASE_RATE": "Swap rate (3.5-4.5%)",
@@ -539,7 +800,7 @@ def build(path=DECK):
                 f"Source: model Sensitivity tab. Required tariff at the hurdle WACC for Najran's yield; base "
                 f"{req_naj:.2f} ¢ at USD {m['CAPEX']:.0f}/kWac. Grid: after-tax nominal WACC; amber = at or below the awarded tariff",
                 notes="Left: one input at a time between its low and high. Right: the capex and cost of capital "
-                      "combinations that reach Najran's tariff.")
+                      "combinations that reach Najran's tariff.", section=sec_b)
     cats = [names[r[0]] for r in tor[:7]]
     lows = [min(r[1], r[2]) for r in tor[:7]]
     highs = [max(r[1], r[2]) for r in tor[:7]]
@@ -565,7 +826,7 @@ def build(path=DECK):
          "1.04 ¢ record sits on a 35-year PPA"), {"bullet": True}),
     ], size=14)
 
-    # 9 Shapley waterfall --------------------------------------------------
+    # Shapley waterfall --------------------------------------------------
     steps = [("Energy yield", wf["Energy yield"]), ("Return accepted", wf["Return accepted (and life)"]),
              ("Capex", wf["Capex"]), ("O&M", wf["O&M"])]
     steps.sort(key=lambda x: x[1])
@@ -577,7 +838,7 @@ def build(path=DECK):
                 "attribution: each bar is the driver's average effect over all 24 orders of change. Najran capex at "
                 f"USD {m['CAPEX']:.0f}/kWac",
                 notes="Order-free attribution, so no one can say the order of the bars drives the answer. Energy and capex "
-                      "are things a buyer can find or tender for. The return bar is what sponsors gave up.")
+                      "are things a buyer can find or tender for. The return bar is what sponsors gave up.", section=sec_b)
     cats = ["IRENA global average 2025"] + [n for n, _ in steps] + ["Najran, real equivalent", "Flat nominal basis",
                                                                      "Najran awarded tariff"]
     lows, highs, cols, labs = [0], [start], [INK], [f"{start:.1f}"]
@@ -602,7 +863,7 @@ def build(path=DECK):
         ("The last two bars add back inflation: flat nominal tariffs look higher than real LCOEs", {"bullet": True}),
     ], size=14)
 
-    # 10 Round 6 dispersion ------------------------------------------------
+    # Round 6 dispersion ------------------------------------------------
     r6 = [r for r in eng if r["Round"] == "R6"]
     e_by = {r["ID"]: r["Energy kWh/kWac"] for r in eng}
     who = {"NAJRAN": "Masdar", "ADDARB": "Masdar", "SAMTAH": "SEC/EDF", "SUFUN": "AEW/Total"}
@@ -613,7 +874,7 @@ def build(path=DECK):
                 "Source: model Engine tab; Round 6 awards via TaiyangNews (S14); site yields from PVGIS 5.3 (S35), "
                 "As Sufun proxied by Hail city. Adjusted tariff = awarded tariff x site energy / average Saudi site energy",
                 notes="Same buyer, same contract, same month. Najran has the best site, but even after adjusting every bid to "
-                      "the same sunshine the spread is still about 30%. The two cheapest bids are Masdar's.")
+                      "the same sunshine the spread is still about 30%. The two cheapest bids are Masdar's.", section=sec_b)
     cd = CategoryChartData()
     cd.categories = [f"{r['Project']} {r['MWac'] / 1000:.1f} GW ({who[r['ID']]})" for r in r6]
     cd.add_series("Awarded tariff", [r["Tariff USc/kWh"] for r in r6])
@@ -633,9 +894,44 @@ def build(path=DECK):
         ("Masdar won both of the two cheapest slots; it also won Al Sadawi in Round 5", {"bullet": True}),
     ], size=14)
 
-    # 11 Oman bridge -------------------------------------------------------
+    # Sponsor league -------------------------------------------------------
+    sp = [r for r in m.rows("SPONSOR_TABLE") if r[0]]
+    lead = {r[0]: r for r in sp}
+    tot_gw, avg_t = m["KSA_PV_AWARDED_GW"], m["AVG_TARIFF_KSA"]
+    msd_since = min(str(r["Date"])[:4] for r in tr if r["Lead sponsor"] == "Masdar" and r["Country"] == "KSA")
+    s = d.slide(f"ACWA Power leads {lead['ACWA Power'][1]:.0f} GW, {lead['ACWA Power'][1] / tot_gw:.0%} of Saudi utility "
+                f"PV awards; Masdar has won {lead['Masdar'][1]:.1f} GW since {msd_since}, and the two price lowest",
+                "Source: model Tracker tab sponsor league (SUMIFS on lead sponsor over analysed awards; S01-S43). Lead "
+                "sponsor = consortium leader; projects in brackets. Tariff is MW-weighted over awards with a disclosed tariff",
+                notes="Bidder appetite is the part of the Saudi result Oman cannot design. The sponsors that bid lowest are "
+                      "state-linked and strategic.",
+                section=sec_b)
+    cd = CategoryChartData()
+    cd.categories = [f"{r[0]} ({int(r[2])})" for r in sp][::-1]
+    cd.add_series("GW awarded", [r[1] for r in sp][::-1])
+    ch = add_chart(s, XL_CHART_TYPE.BAR_CLUSTERED, cd, 0.5, 1.5, 7.8, 5.2)
+    style_chart(ch)
+    quiet_axes(ch, '0" GW"', 0, 42, gridlines=False)
+    ch.value_axis.visible = False
+    ch.plots[0].gap_width = 45
+    ser = ch.plots[0].series[0]
+    for i, r in enumerate(sp[::-1]):
+        fill(ser.points[i], AMBER if r[0] in ("ACWA Power", "Masdar") else GREY)
+        t_ = f"{r[3]:.2f}¢" if isinstance(r[3], float) else "tariff n/a"
+        label(ser.points[i], f"{r[1]:.1f} GW · {t_}", size=11, pos=XL_LABEL_POSITION.OUTSIDE_END,
+              bold=r[0] in ("ACWA Power", "Masdar"))
+    text(s, 8.7, 1.6, 4.1, 5.1, [
+        ("Why it matters for Oman", {"bold": True}),
+        ((f"The two largest sponsors bid lowest: {lead['ACWA Power'][3]:.2f} ¢ (ACWA) and {lead['Masdar'][3]:.2f} ¢ "
+         f"(Masdar), against {avg_t:.2f} ¢ for the programme"), {"bullet": True}),
+        (("Both are state-linked: PIF is ACWA Power's largest shareholder, and Masdar is owned by Abu Dhabi state "
+          "companies"), {"bullet": True}),
+        ("Masdar already leads Ibri III, so Oman has one of the two in its bidder pool", {"bullet": True}),
+        ("Move 4 for Oman depends on drawing both into GW-scale rounds", {"bullet": True}),
+    ], size=14)
+
+    # Oman bridge ----------------------------------------------------------
     o_start, o_end = ob["KSA at hurdle returns"], ob["Oman at hurdle returns"]
-    y_by = {r["ID"]: r["PVGIS yield kWh/kWp-yr"] for r in m.table("Yield", 4)}
     o_gap = o_end - o_start
     designable = (o_gap - ob["Resource"]) / o_gap
     s = d.slide(f"About {designable:.0%} of the {o_gap:.1f} ¢ gap between Oman and a Saudi-quality site is designable; "
@@ -644,7 +940,7 @@ def build(path=DECK):
                 "spread (1.36 pts) to debt and the country risk premium gap (2.07 pts) to equity (Damodaran Jan 2026, S22). "
                 "Ibri yield from PVGIS; Oman capex from Ibri III (S25); Shapley attribution",
                 notes="Resource is fixed. Capex and scale are about tender size and site preparation. Financing depends on the "
-                      "buyer's credit and any guarantee. Tenor is a contract choice.")
+                      "buyer's credit and any guarantee. Tenor is a contract choice.", section=sec_c)
     keys = ["Resource", "Capex and scale", "Financing and tax", "Contract tenor"]
     cats = ["Saudi site, hurdle returns"] + keys + ["Oman (Ibri), hurdle returns"]
     lows, highs, cols, labs, run = [0], [o_start], [INK], [cents(o_start)], o_start
@@ -669,14 +965,14 @@ def build(path=DECK):
         ("Tenor: a 25-year PPA instead of 20", {"bullet": True}),
     ], size=14)
 
-    # 12 Oman cases --------------------------------------------------------
+    # Oman cases --------------------------------------------------------
     s = d.slide(f"With Saudi-style tender design Oman could reach about {cases[2]:.1f} ¢, below the {gas:.1f} ¢ fuel "
                 f"cost of gas power at regulated prices and {lng:.1f} ¢ at LNG export value",
                 f"Source: model Oman tab. Gas: USD 3.00/MMBtu (2015, S31) escalated 3%/yr to {m['OMN_GAS']:.2f}; heat rate "
                 f"{m['OMN_HR']:.1f} MMBtu/MWh. LNG: {m['LNG_SLOPE']:.0%} of Brent at USD {m['BRENT']:.0f} (World Bank 2026 "
                 "baseline, S32) less USD 2.5 shipping and liquefaction. The Bank's severe Hormuz case (USD 95-115) lifts it further",
                 notes="Cases are cumulative. Case 4 is not a recommendation: it shows what a Najran-style sponsor return would "
-                      "do. Even the commercial case beats the fuel cost of gas power, before counting capacity value.")
+                      "do. Even the commercial case beats the fuel cost of gas power, before counting capacity value.", section=sec_c)
     cd = CategoryChartData()
     cats = ["1. Oman today: 500 MW, 20-yr PPA", "2. + Saudi-grade financing", "3. + GW-scale tender, 25-yr PPA",
             "4. + Najran-style sponsor return", "Gas fuel cost, regulated price", "Gas fuel cost, LNG netback"]
@@ -701,31 +997,38 @@ def build(path=DECK):
         ("Case 4 depends on who bids, not on what Nama PWP designs", {"bullet": True}),
     ], size=14)
 
-    # 13 Four moves --------------------------------------------------------
-    s = d.slide("Four moves for Nama PWP, in order of what it controls: credit support, GW-scale prepared sites, "
-                "25-year PPAs and a wider bidder pool",
-                "Source: model Oman tab (case steps and Shapley effects); Saudi precedents from the Tracker tab and ACWA "
-                "Power FY2025 investor report (S43)",
-                notes="Impacts are from the Oman tab and are not additive with each other beyond case 3.")
-    rows = [["Move", "What it changes", "Effect on Oman tariff", "Saudi precedent"],
-            ["1. Credit support for the buyer", "Debt and equity priced nearer Saudi terms",
-             f"-{cases[0] - cases[1]:.2f} ¢", "SPPC: sovereign-backed single buyer"],
-            ["2. GW-scale, state-prepared sites", "Capex per kW; land and grid outside the bid",
-             f"-{ob['Capex and scale']:.2f} ¢", "Najran 1.4 GW; PIF sites of 2-3 GW"],
-            ["3. 25-year PPAs (or longer)", "Spreads capex over more years", f"-{ob['Contract tenor']:.2f} ¢",
-             "SPPC 25 years; three PIF projects at 35"],
-            ["4. Widen the bidder pool", "Lets strategic sponsors price below commercial returns",
-             f"up to -{cases[2] - cases[3]:.2f} ¢", "Masdar, ACWA, EDF, KEPCO, SPIC, Jinko Power"]]
-    table(s, rows, 0.5, 1.6, 12.3, [3.0, 3.9, 2.0, 3.4], size=14, row_h=0.75)
-    text(s, 0.5, 5.6, 12.3, 1.1, [
-        (("Moves 1 to 3 are in Nama PWP's hands and together take Oman from "
-         f"{cents(cases[0])} to {cents(cases[2])}. Move 4 depends on whether sponsors want a foothold in Oman."), {})],
-        size=14)
+    # Four moves -----------------------------------------------------------
+    twh31, per01 = m["OMN_SOLAR_TWH_2031"], m["OMN_IMP_PER01_2031"]
+    usd = lambda c_: f"{c_ * twh31 * 10:.0f}"  # 1 USc/kWh on 1 TWh = USD 10m
+    s = d.slide(f"Four moves for Nama PWP, in order of what it controls; the first three are worth about USD "
+                f"{moves_m:.0f}m a year on the solar in its 2031 plan",
+                "Source: model Oman and Impact tabs (case steps and Shapley effects); 2031 solar output from Nama PWP's "
+                "7-Year Statement 2025-2031 (S55); Saudi precedents from the Tracker tab and ACWA Power (S43)",
+                notes="Impacts are from the Oman tab and are not additive with each other beyond case 3. Dollar values "
+                      "apply each saving to 2031 solar output.", section=sec_c)
+    moves = [("1. Credit support for the buyer", "Debt and equity priced nearer Saudi terms", cases[0] - cases[1],
+              "SPPC: sovereign-backed single buyer"),
+             ("2. GW-scale, state-prepared sites", "Capex per kW; land and grid outside the bid", ob["Capex and scale"],
+              "Najran 1.4 GW; PIF sites of 2-3 GW"),
+             ("3. 25-year PPAs (or longer)", "Spreads capex over more years", ob["Contract tenor"],
+              "SPPC 25 years; three PIF projects at 35"),
+             ("4. Widen the bidder pool", "Lets strategic sponsors price below commercial returns", cases[2] - cases[3],
+              "Masdar, ACWA, EDF, KEPCO, SPIC, Jinko Power")]
+    rows = [["Move", "What it changes", "Effect on tariff", "USD m a year, 2031", "Saudi precedent"]]
+    for i, (mv, what, c_, prec) in enumerate(moves):
+        up = "up to " if i == 3 else ""
+        rows.append([mv, what, f"{up}-{c_:.2f} ¢", f"{up}{usd(c_)}", prec])
+    table(s, rows, 0.5, 1.6, 12.3, [2.9, 3.4, 1.7, 1.6, 2.7], size=14, row_h=0.72)
+    text(s, 0.5, 5.4, 12.3, 1.35, [
+        ((f"Moves 1 to 3 are in Nama PWP's hands and together take Oman from {cents(cases[0])} to {cents(cases[2])}. "
+         f"On the {twh31:.0f} TWh of solar in its 2031 plan, every 0.1 ¢ is worth USD {per01:.0f}m a year. The gas that "
+         f"solar saves is worth USD {m['OMN_IMP_GAS_2031']:.0f}m a year at the regulated price and "
+         f"USD {m['OMN_IMP_LNG_2031'] / 1000:.2f}bn as LNG."), {})], size=14)
 
-    # 14 What would change the answer -------------------------------------
+    # What would change the answer -------------------------------------
     s = d.slide("Three inputs would change the answer, and paid data could settle each of them",
                 "Source: model Sensitivity tab; author's assessment of data sources",
-                notes="Be explicit about what is estimated. These are the questions an interviewer will ask.")
+                notes="Be explicit about what is estimated. These are the questions an interviewer will ask.", section=sec_c)
     up10 = (1 - m["TAX_KSA"]) * t_naj / 100 * najran["Energy kWh/kWac"] * najran["PV factor energy"] * 0.1 / (
         1 - najran["Tax shield"])
     card(s, 0.5, 1.6, 6.0, 3.9, "What would move the numbers", [
@@ -747,30 +1050,111 @@ def build(path=DECK):
     s = d.slide("Appendix: how the model is built", "Source: model/NREP_Tariff_LCOE_Model.xlsx; docs/model-guide.md",
                 tag=False)
     n_inputs = sum(1 for r in m.wb["Inputs"].iter_rows(min_row=5, values_only=True) if r[0] and r[7])
+    n_checks = 0
+    for r in m.wb["Checks"].iter_rows(min_row=5, values_only=True):
+        if r[0] is None:
+            break
+        n_checks += 1
     boxes = [("Inputs", f"{n_inputs} assumptions, each Reported, Derived or Assumed, with a range"),
-             ("Tracker and Yield", f"{len(tr)} projects; PVGIS yields calibrated to Sakaka's measured output"),
+             ("Tracker and Yield", f"{len(tr)} projects, sponsor league; PVGIS yields calibrated to Sakaka"),
              ("Engine", "Closed-form after-tax LCOE: implied capex, IRR, real equivalent"),
              ("Bridge and Oman", "Shapley attribution; Oman cases and avoided cost"),
-             ("Checks", "12 integrity tests, all TRUE, plus automated tests in the repo")]
+             ("Impact, Value chain, Changes", "Oil freed, cost stack, what has to be true, 2018-2026 trends"),
+             ("Checks", f"{n_checks} integrity tests, all TRUE, plus automated tests in the repo")]
     for i, (h_, b) in enumerate(boxes):
-        x = 0.5 + i * 2.5
-        shp = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(2.2), Inches(2.2), Inches(2.4))
+        x = 0.5 + i * 2.08
+        shp = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(2.2), Inches(1.9), Inches(2.5))
         shp.fill.solid()
         shp.fill.fore_color.rgb = PALE if i else AMBER_PALE
         shp.line.fill.background()
-        text(s, x + 0.12, 2.32, 1.96, 0.5, [(h_, {"bold": True})], size=15)
-        text(s, x + 0.12, 2.9, 1.96, 1.6, [b], size=13)
-        if i < 4:
-            ln = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Inches(x + 2.22), Inches(3.4), Inches(x + 2.48), Inches(3.4))
+        text(s, x + 0.1, 2.3, 1.7, 0.65, [(h_, {"bold": True})], size=14)
+        text(s, x + 0.1, 2.98, 1.7, 1.65, [b], size=12)
+        if i < len(boxes) - 1:
+            ln = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Inches(x + 1.92), Inches(3.45), Inches(x + 2.06),
+                                        Inches(3.45))
             ln.line.color.rgb = MUTED
             ln.line.width = Pt(1.5)
     text(s, 0.5, 5.0, 12.3, 1.6, [
         (("Every number on these slides is read from the workbook. Formulas are live, inputs are named (=CAPEX, "
          "=WACC_KSA) and the Python build re-computes each output independently as a test."), {})], size=14)
 
+    # Timeline and actors --------------------------------------------------
+    tl = m.rows("TIMELINE")
+    by_p = defaultdict(list)
+    for r in tl:
+        by_p[r[0]].append(r)
+    names_p = list(by_p)
+    short = {"RFQ issued": "RFQ", "Bidders qualified": "Qualified", "Bids shortlisted": "Shortlist", "Award": "Award",
+             "PPA signed": "PPA", "Financial close": "FC", "Contractor appointed": "EPC", "EPC awarded (L&T)": "EPC"}
+    tag_of = lambda ms: "COD" if "ommercial operation" in ms else short.get(ms, ms)
+    month = lambda r: int(r[3][:4]) + (int(r[3][5:7]) - 1) / 12
+    start_of = lambda p: next(r for r in by_p[p] if r[2] in ("Award", "PPA signed"))
+    cod_of = lambda p: next(r for r in by_p[p] if "ommercial operation" in r[2])
+    ksa_p = [p for p in names_p if by_p[p][0][1] != "Nama PWP (Oman)"]
+    builds = [cod_of(p)[4] - start_of(p)[4] for p in ksa_p]
+    rfq = {r[2]: r[4] for r in by_p["Najran"]}
+    ibri = cod_of("Ibri III")[4] - start_of("Ibri III")[4]
+    s = d.slide(f"Appendix: Saudi rounds take about {rfq['Award'] - rfq['RFQ issued']} months from RFQ to award and "
+                f"{min(builds)} to {max(builds)} months from award to full power; Oman's Ibri III is set for {ibri}",
+                "Source: model Value_chain tab (timeline); milestones from "
+                + ", ".join(sorted({x for r in tl for x in r[6].split(";")})) + ". Amber: SPPC round; blue: PIF bilateral; teal: Oman. COD dates "
+                "after November 2026 are targets", tag=False)
+    xy = XyChartData()
+    row_y = {p: len(names_p) - i for i, p in enumerate(names_p)}
+    n_max = max(len(v) for v in by_p.values())
+    for p in names_p:  # LibreOffice drops a line series that is shorter than a later one, so pad with the last point
+        ser = xy.add_series(p)
+        for r in by_p[p] + [by_p[p][-1]] * (n_max - len(by_p[p])):
+            ser.add_data_point(month(r), row_y[p])
+    ser = xy.add_series("Project")
+    for p in names_p:
+        ser.add_data_point(month(by_p[p][0]), row_y[p])
+    ch = add_chart(s, XL_CHART_TYPE.XY_SCATTER_LINES, xy, 0.5, 1.4, 8.6, 5.35)
+    style_chart(ch)
+    quiet_axes(ch, None, 0.3, len(names_p) + 0.7, gridlines=False)
+    ch.value_axis.visible = False
+    xa = ch.category_axis
+    xa.minimum_scale, xa.maximum_scale, xa.major_unit = 2017, 2029, 1
+    xa.tick_labels.number_format, xa.tick_labels.number_format_is_linked = "0", False
+    xa.has_major_gridlines = True
+    xa.major_gridlines.format.line.color.rgb = GRID
+    for ser, p in zip(ch.plots[0].series, names_p):
+        tr_ = by_p[p][0][1]
+        c = TEAL if "Oman" in tr_ else BLUE if "PIF" in tr_ else AMBER
+        ser.smooth = False
+        ser.format.line.color.rgb = c
+        ser.format.line.width = Pt(2)
+        ser.marker.style, ser.marker.size = XL_MARKER_STYLE.CIRCLE, 8
+        ser.marker.format.fill.solid()
+        ser.marker.format.fill.fore_color.rgb = c
+        ser.marker.format.line.color.rgb = WHITE
+        seen, k = {}, 0
+        for j, r in enumerate(by_p[p]):
+            if r[3] in seen:  # same month as the previous milestone: merge the labels
+                label(ser.points[seen[r[3]][0]], f"{seen[r[3]][1]}, {tag_of(r[2])}", size=9,
+                      pos=XL_LABEL_POSITION.ABOVE if seen[r[3]][2] else XL_LABEL_POSITION.BELOW)
+                continue
+            above = k % 2 == 0
+            seen[r[3]] = (j, tag_of(r[2]), above)
+            label(ser.points[j], tag_of(r[2]), size=9, pos=XL_LABEL_POSITION.ABOVE if above else XL_LABEL_POSITION.BELOW)
+            k += 1
+    names_ser = ch.plots[0].series[-1]  # one point on each project's first milestone, carrying its name
+    names_ser.format.line.fill.background()
+    names_ser.marker.style = XL_MARKER_STYLE.NONE
+    for j, p in enumerate(names_p):
+        label(names_ser.points[j], f"{p}  ", size=10, pos=XL_LABEL_POSITION.LEFT, bold=True)
+    card(s, 9.4, 1.5, 3.4, 5.2, "Who does what", [
+        "Ministry of Energy: targets and the tender programme",
+        "SPPC: single buyer; runs the rounds and signs the PPAs",
+        "PIF (Badeel) and Aramco (SAPCO): co-invest with ACWA Power on the bilateral track",
+        "SEC: grid connection; also bids with EDF",
+        "LCGPA: local-content rules",
+        "Oman: Nama PWP is the single buyer and runs the tenders",
+    ], size=12)
+
     a = {r[0]: r for r in m.wb["Inputs"].iter_rows(min_row=5, values_only=True) if r[0]}
     keep = ["CAPEX", "YIELD_CAL_RANGE", "OPEX", "DEGR", "PPA_YEARS", "BASE_RATE", "MARGIN", "TENOR", "DSCR",
-            "GEAR_WACC", "EQ_HURDLE", "TAX_KSA", "OMN_CAPEX", "OMN_PPA", "OMN_GAS"]
+            "GEAR_WACC", "EQ_HURDLE", "TAX_KSA", "OMN_CAPEX", "OMN_PPA", "OMN_GAS", "HR_OIL", "LIQ_SHARE"]
     s = d.slide("Appendix: assumption log for the main drivers", "Source: model Inputs tab, which also gives the rationale "
                 "for each line", tag=False)
     rows = [["Input", "Base", "Range", "Type", "Source"]]
@@ -779,7 +1163,7 @@ def build(path=DECK):
         pct = r[6] in ("per yr", "share", "share of capex")
         f_ = (lambda v: f"{v:.2%}") if pct else (lambda v: f"{v:,.3g}")
         rows.append([r[2], f_(r[3]), f"{f_(r[4])} to {f_(r[5])}", r[7], r[8] or "-"])
-    table(s, rows, 0.5, 1.5, 12.3, [5.2, 1.6, 2.6, 1.3, 1.6], size=11, row_h=0.32)
+    table(s, rows, 0.5, 1.45, 12.3, [5.2, 1.6, 2.6, 1.3, 1.6], size=11, row_h=0.29)
 
     srcs = {r[0]: r for r in m.wb["Sources"].iter_rows(min_row=5, values_only=True) if r[0]}
     cited = {x for slide_ in d.prs.slides for sh in slide_.shapes if sh.has_text_frame and sh.name == "Source"
@@ -787,12 +1171,13 @@ def build(path=DECK):
     cited |= {x for r in tr if r["In analysis"] == "Y" for x in r["Sources"].split(";")}
     cited |= {r[8] for r in m.wb["Capex"].iter_rows(min_row=5, max_row=18, values_only=True) if r[8]}
     cited = sorted(cited)
-    half = (len(cited) + 1) // 2
-    for part, chunk in enumerate((cited[:half], cited[half:]), start=1):
-        s = d.slide(f"Appendix: sources behind this deck ({part} of 2)",
+    per = 16
+    chunks = [cited[i:i + per] for i in range(0, len(cited), per)]
+    for part, chunk in enumerate(chunks, start=1):
+        s = d.slide(f"Appendix: sources behind this deck ({part} of {len(chunks)})",
                     "Full register with URLs and access dates: model Sources tab", tag=False)
         rows = [["ID", "Publisher", "Title", "Date"]] + [[c, srcs[c][1], srcs[c][2], srcs[c][3]] for c in chunk]
-        table(s, rows, 0.5, 1.4, 12.3, [0.6, 2.7, 7.9, 1.1], size=11, row_h=0.32)
+        table(s, rows, 0.5, 1.4, 12.3, [0.6, 2.7, 7.9, 1.1], size=11, row_h=0.31)
 
     path.parent.mkdir(parents=True, exist_ok=True)
     d.prs.save(path)
@@ -828,19 +1213,22 @@ def build_onepager(path=ONEPAGER):
     floating(s, cats, lows, highs, cols, 0.5, 1.8, 7.4, 4.9, '"$"0', 0, 48, labels=labs, horizontal=False, gap=45,
              label_color=[WHITE, INK, INK, INK, INK, WHITE])
     gap = start - mid
-    text(s, 8.3, 1.4, 4.5, 3.4, [
-        ("Three takeaways", {"bold": True}),
+    text(s, 8.3, 1.4, 4.5, 4.0, [
+        ("Four takeaways", {"bold": True}),
+        ((f"The {m['IMP_OP_GW']:.1f} GW of solar running frees about {m['IMP_OP_KBD']:.0f} kb/d of crude, worth "
+         f"{m['IMP_OP_RATIO']:.1f} times what SPPC pays for it"), {"bullet": True}),
         ((f"At the 2025 disclosed cost of USD {m['CX_DISCLOSED_2025']:.0f}/kWac, Najran's {m['T_NAJRAN']:.2f} ¢ bid "
-         f"returns {m['IRR_NAJRAN']:.1%} before leverage"), {"bullet": True}),
+         f"returns {m['IRR_NAJRAN']:.1%} before leverage; it costs {m['VC_PRE_FIN']:.2f} ¢ before any return"),
+         {"bullet": True}),
         ((f"Sunshine and capex explain {(-wf['Energy yield'] - wf['Capex']) / gap:.0%} of the gap to the global "
          f"average; accepted return {-wf['Return accepted (and life)'] / gap:.0%}"), {"bullet": True}),
         ((f"Oman reaches {cases[2]:.1f} ¢ with credit support, GW-scale tenders and 25-year PPAs, below the "
          f"{m['OMN_AVOIDED_GAS']:.1f} ¢ fuel cost of gas power"), {"bullet": True}),
-    ], size=13)
-    card(s, 8.3, 4.85, 4.5, 1.85, "With paid data I would", [
+    ], size=12)
+    card(s, 8.3, 5.3, 4.5, 1.45, "With paid data I would", [
         "Pull debt terms from IJGlobal deal sheets",
         "Test bidder appetite with full MEED bid tables",
-    ], accent=TEAL, size=12)
+    ], accent=TEAL, size=11)
     path.parent.mkdir(parents=True, exist_ok=True)
     d.prs.save(path)
     return path
