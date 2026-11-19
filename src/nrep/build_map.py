@@ -7,11 +7,12 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
-from matplotlib.patches import PathPatch  # noqa: E402
-from matplotlib.path import Path as MPath  # noqa: E402
-from openpyxl import load_workbook  # noqa: E402
+import matplotlib.patheffects as pe
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path as MPath
+from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
@@ -31,6 +32,18 @@ def ring_paths(geom):
     return [MPath(p[0]) for p in polys]
 
 
+def pad(points, step=0.5, reach=1.6):
+    """Nearest-value cells just outside the sampled grid, so contours reach the borders (the fill is clipped to land)."""
+    out = list(points)
+    for i in range(int(28 / step)):
+        for j in range(int(20 / step)):
+            x, y = 33 + i * step, 14 + j * step
+            d, z = min(((x - px) ** 2 + (y - py) ** 2, pz) for px, py, pz in points)
+            if 0.75**2 < d <= reach**2:  # interior cells are all within 0.71 of a sample
+                out.append((x, y, z))
+    return out
+
+
 def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
     plt.rcParams["font.family"] = "Liberation Sans"
     borders = json.loads((DATA / "raw" / "borders_mena.geojson").read_text())["features"]
@@ -48,9 +61,7 @@ def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
             ax.add_patch(PathPatch(p, facecolor="#F4F5F7", edgecolor="#C9CED4", lw=0.4, zorder=1))
 
     cmap = LinearSegmentedColormap.from_list("sun", ["#FFF4DC", "#F2C46E", "#C2780B"])
-    xs = [float(g["lon"]) for g in grid]
-    ys = [float(g["lat"]) for g in grid]
-    zs = [float(g["yield_kwh_kwp_yr"]) for g in grid]
+    xs, ys, zs = zip(*pad([(float(g["lon"]), float(g["lat"]), float(g["yield_kwh_kwp_yr"])) for g in grid]))
     levels = [2100 + 100 * k for k in range(8)]
     fill = ax.tricontourf(xs, ys, zs, levels=levels, cmap=cmap, zorder=2, extend="both")
     clip = [p for f in borders if f["properties"]["iso"] in ("SAU", "OMN") for p in ring_paths(f["geometry"])]
@@ -71,7 +82,9 @@ def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
             tag = f"{LABELS[t['id']]}"
             if isinstance(tariffs.get(t["id"]), float):
                 tag += f" {tariffs[t['id']]:.2f}¢"
-            ax.annotate(tag, (x, y), xytext=(6, 4), textcoords="offset points", fontsize=7.5, color=INK, zorder=6)
+            r = (mw / 9) ** 0.5 / 2  # marker radius in points
+            ax.annotate(tag, (x, y), xytext=(r + 3, 2), textcoords="offset points", fontsize=7.5, color=INK, zorder=6,
+                        path_effects=[pe.withStroke(linewidth=2.5, foreground="white")])
 
     for text_, x, y in (("Red Sea", 37.4, 21.0), ("Arabian Gulf", 51.2, 27.6), ("Strait of Hormuz", 55.2, 27.0)):
         ax.text(x, y, text_, fontsize=7, color=TEXT2, style="italic", zorder=6)
