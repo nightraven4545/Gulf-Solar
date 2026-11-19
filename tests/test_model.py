@@ -51,7 +51,7 @@ def test_no_hardcoded_numbers_in_calc_tabs():
                "0.000001", "0.001"}
     wb = load_workbook(MODEL)
     for name in ("Engine", "Engine_CF", "PF_Model", "Bridge", "Oman", "Capex", "Checks", "Impact", "Value_chain",
-                 "Changes"):
+                 "Changes", "Forecast"):
         for row in wb[name].iter_rows():
             for c in row:
                 if isinstance(c.value, str) and c.value.startswith("="):
@@ -61,7 +61,8 @@ def test_no_hardcoded_numbers_in_calc_tabs():
 
 
 def test_all_checks_pass(values):
-    assert values["Checks"]["C20"].value is True
+    assert values["Checks"]["C21"].value is True
+    assert values["Cover"]["C22"].value is True
 
 
 def test_najran_outputs_match_reference(values):
@@ -81,13 +82,39 @@ def test_pf_equity_irr_matches_reference(values):
     assert values["Cover"]["C12"].value == pytest.approx(pf["equity_irr"], abs=1e-7)
 
 
-def test_oman_commercial_tariff_matches_reference(values):
+def oman_commercial():
     kd = KD + A["DS_OMN"] - A["DS_KSA"]
     ke = A["EQ_HURDLE"] + A["CRP_OMN"] - A["CRP_KSA"]
     w = A["GEAR_WACC"] * kd * (1 - A["TAX_OMN"]) + (1 - A["GEAR_WACC"]) * ke
     n = int(A["OMN_PPA"])
-    ref = lcoe(A["OMN_CAPEX"], PVGIS["IBRI3"] * CAL, A["OPEX"], w, n, A["DEGR"], A["OPEX_ESC"], A["TAX_OMN"], n)
-    assert values["Cover"]["C14"].value == pytest.approx(100 * ref)
+    return lcoe(A["OMN_CAPEX"], PVGIS["IBRI3"] * CAL, A["OPEX"], w, n, A["DEGR"], A["OPEX_ESC"], A["TAX_OMN"], n)
+
+
+def test_oman_commercial_tariff_matches_reference(values):
+    assert values["Cover"]["C14"].value == pytest.approx(100 * oman_commercial())
+
+
+def test_oman_breakeven_gas_price(values):
+    # USc/kWh x 10 = USD/MWh; / MMBtu per MWh = USD/MMBtu
+    assert values["Cover"]["C20"].value == pytest.approx(100 * oman_commercial() * 10 / A["OMN_HR"])
+
+
+def test_round7_forecast_matches_reference(values):
+    tracker = list(csv.DictReader((ROOT / "data" / "tracker.csv").read_text().splitlines()))
+    r6 = [t for t in tracker if t["round"] == "R6" and t["in_analysis"] == "Y"]
+    accepted = {t["id"]: irr(project_cash_flows(float(t["tariff_usc"]) / 100, CAPEX_2025, PVGIS[t["id"]] * CAL, **KSA))
+                for t in r6}
+    mw = {t["id"]: float(t["mw_ac"]) for t in r6}
+    rates = {"Low": accepted["NAJRAN"], "Mid": sum(mw[k] * v for k, v in accepted.items()) / sum(mw.values()),
+             "High": max(accepted.values())}
+    got = {(r[0], r[4]): r[13] for r in values["Forecast"].iter_rows(min_row=10, values_only=True) if r[0] and r[4]}
+    sites = [t["id"] for t in tracker if t["round"] == "R7" and t["id"] in PVGIS]
+    assert len(sites) == 4
+    for sid in sites:
+        for case, rate in rates.items():
+            ref = lcoe(CAPEX_2025, PVGIS[sid] * CAL, rate=rate, **KSA)
+            assert got[(sid, case)] == pytest.approx(100 * ref, abs=1e-5), (sid, case)
+    assert got[("NAJRAN", "Najran")] == pytest.approx(100 * NAJRAN_T, abs=1e-6)
 
 
 def test_impact_matches_reference(values):

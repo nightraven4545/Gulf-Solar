@@ -77,6 +77,9 @@ def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
         if not t["lat"] or t["tech"] not in ("PV", "PV+BESS") or t["country"] not in ("KSA", "Oman"):
             continue
         x, y, mw = float(t["lon"]), float(t["lat"]), float(t["mw_ac"])
+        if t["status"] == "bidding":  # Round 7: bids in, no award yet
+            ax.scatter(x, y, s=mw / 9, facecolor="none", edgecolor=COLORS[t["track"]], lw=1.4, zorder=5)
+            continue
         ax.scatter(x, y, s=mw / 9, color=COLORS[t["track"]], edgecolor="white", lw=0.8, alpha=0.9, zorder=5)
         if t["id"] in LABELS:
             tag = f"{LABELS[t['id']]}"
@@ -86,7 +89,7 @@ def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
             ax.annotate(tag, (x, y), xytext=(r + 3, 2), textcoords="offset points", fontsize=7.5, color=INK, zorder=6,
                         path_effects=[pe.withStroke(linewidth=2.5, foreground="white")])
 
-    for text_, x, y in (("Red Sea", 37.4, 21.0), ("Arabian Gulf", 51.2, 27.6), ("Strait of Hormuz", 55.2, 27.0)):
+    for text_, x, y in (("Red Sea", 34.85, 25.9), ("Arabian Gulf", 51.2, 27.6), ("Strait of Hormuz", 55.2, 27.0)):
         ax.text(x, y, text_, fontsize=7, color=TEXT2, style="italic", zorder=6)
     cbar = fig.colorbar(fill, ax=ax, orientation="horizontal", fraction=0.04, pad=0.02, shrink=0.55)
     cbar.set_label("Tracked PV yield, kWh/kWp per year (PVGIS 5.3)", fontsize=8, color=TEXT2)
@@ -94,9 +97,10 @@ def render(out=OUT, model=ROOT / "model" / "NREP_Tariff_LCOE_Model.xlsx"):
     cbar.outline.set_visible(False)
     for label, c in (("SPPC tender", COLORS["SPPC"]), ("PIF bilateral", COLORS["PIF"]), ("Oman (Nama PWP)", COLORS["IPP tender"])):
         ax.scatter([], [], s=60, color=c, edgecolor="white", label=label)
+    ax.scatter([], [], s=60, facecolor="none", edgecolor=COLORS["SPPC"], lw=1.4, label="Round 7 site (bids in)")
     for mw in (500, 2000):
         ax.scatter([], [], s=mw / 9, facecolor="none", edgecolor=TEXT2, label=f"{mw:,} MW")
-    ax.legend(loc="lower left", fontsize=7.5, frameon=False, labelspacing=1.1, borderpad=0.2)
+    ax.legend(loc="lower left", fontsize=7.5, frameon=False, labelspacing=0.8, borderpad=0.2)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)

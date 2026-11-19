@@ -225,7 +225,7 @@ def build(out=OUT):
     put(ws, f"A{r}", "Sponsor league: Saudi utility PV awards (both tracks)", bold=True)
     header(ws, r + 1, ["Lead sponsor", "GW awarded", "Projects", "MW-weighted tariff (USc/kWh, disclosed)"])
     sponsors = sorted({t["lead_sponsor"] for t in tracker if t["country"] == "KSA" and t["lead_sponsor"]},
-                      key=lambda x: -sum(float(t["mw_ac"]) for t in tracker if t["lead_sponsor"] == x and t["country"] == "KSA"))
+                      key=lambda x: (-sum(float(t["mw_ac"]) for t in tracker if t["lead_sponsor"] == x and t["country"] == "KSA"), x))
     sp_top = r + 2
     for i, sp in enumerate(sponsors):
         rr = sp_top + i
@@ -693,6 +693,13 @@ def build(out=OUT):
     put(ws, "B49", "=(BRENT*LNG_SLOPE-LNG_NETBACK_COST)*OMN_HR/10", fmt=CENTS, fill=FILL_OUT)
     bk.name("OMN_AVOIDED_GAS", "Oman!$B$48")
     bk.name("OMN_AVOIDED_LNG", "Oman!$B$49")
+    put(ws, "A51", "Gas price at which solar matches the fuel cost of gas power (USD/MMBtu)", bold=True)
+    put(ws, "A52", "Case 1: Oman as today")
+    put(ws, "B52", "=OMN_CASE1*10/OMN_HR", fmt="0.00", fill=FILL_OUT)
+    put(ws, "A53", "Case 3: with credit support, a GW-scale tender and a 25-yr PPA")
+    put(ws, "B53", "=OMN_CASE3*10/OMN_HR", fmt="0.00", fill=FILL_OUT)
+    bk.name("OMN_BE_GAS1", "Oman!$B$52")
+    bk.name("OMN_BE_GAS3", "Oman!$B$53")
 
     # Impact -----------------------------------------------------------
     ws = bk.sheet("Impact", "Economic impact: what solar is worth to Saudi Arabia, and to Oman",
@@ -859,6 +866,69 @@ def build(out=OUT):
         put(ws, f"A{27 + i}", label)
         put(ws, f"B{27 + i}", f, F_LINK, NUM1)
 
+    # Forecast ---------------------------------------------------------
+    ws = bk.sheet("Forecast", "Round 7 forecast: what the four sites clear at if bidders accept Round 6 returns",
+                  "Same closed form as Engine column U, at the 2025 disclosed cost and each site's yield. Returns are the "
+                  "project IRRs Round 6 winners accepted (Engine column X). Made 19 November 2026, before any award.",
+                  widths=[14, 18, 8, 10, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10])
+    put(ws, "A4", "Return accepted in Round 6 (project IRR at the 2025 disclosed cost)", bold=True)
+    rates_r7 = [("Low: Najran, the most aggressive Round 6 bid", "=IRR_NAJRAN"),
+                ("Mid: Round 6 average, weighted by MW",
+                 f'=SUMPRODUCT(--({eng_rng("E")}="R6"),{eng_rng("H")},{eng_rng("X")})/SUMIFS({eng_rng("H")},{eng_rng("E")},"R6")'),
+                ("High: the highest Round 6 return", f'=_xlfn.MAXIFS({eng_rng("X")},{eng_rng("E")},"R6")')]
+    for i, (label, f) in enumerate(rates_r7):
+        put(ws, f"A{5 + i}", label)
+        put(ws, f"B{5 + i}", f, fmt=PCT2, fill=FILL_OUT)
+    for i, k in enumerate(("R7_RATE_LO", "R7_RATE_MID", "R7_RATE_HI")):
+        bk.name(k, f"Forecast!$B${5 + i}")
+    header(ws, 9, ["ID", "Project", "MWac", "Energy kWh/kWac", "Case", "Return", "q energy", "PV factor energy", "q O&M",
+                   "PV factor O&M", "Dep. annuity", "Tax shield", "Capex USD/kWac", "Tariff (USc)"])
+    sites = [t for t in tracker if t["round"] == "R7" and t["id"] in yields]
+    calc = [(t, case, f"=$B${5 + j}") for t in sites for j, case in enumerate(("Low", "Mid", "High"))]
+    calc.append(({"id": "NAJRAN", "project": "Najran (parity)"}, "Najran", "=IRR_NAJRAN"))
+    f_top = 10
+    for i, (t, case, rate) in enumerate(calc):
+        r = f_top + i
+        put(ws, f"A{r}", t["id"])
+        put(ws, f"B{r}", t["project"])
+        put(ws, f"C{r}", f"=INDEX({tr('H')},MATCH($A{r},{tr('A')},0))", F_LINK, NUM0)
+        put(ws, f"D{r}", f"=INDEX(Yield!$H:$H,MATCH($A{r},Yield!$A:$A,0))", F_LINK, NUM0)
+        put(ws, f"E{r}", case)
+        put(ws, f"F{r}", rate, F_LINK, PCT2)
+        put(ws, f"G{r}", f"=(1-DEGR)/(1+F{r})", fmt="0.0000")
+        put(ws, f"H{r}", f"=G{r}*(1-G{r}^PPA_YEARS)/((1-G{r})*(1-DEGR))", fmt=NUM3)
+        put(ws, f"I{r}", f"=(1+OPEX_ESC)/(1+F{r})", fmt="0.0000")
+        put(ws, f"J{r}", f"=I{r}*(1-I{r}^PPA_YEARS)/((1-I{r})*(1+OPEX_ESC))", fmt=NUM3)
+        put(ws, f"K{r}", f"=(1-(1+F{r})^-DEP_YEARS)/F{r}", fmt=NUM3)
+        put(ws, f"L{r}", f"=TAX_KSA*K{r}/DEP_YEARS", fmt="0.0000")
+        put(ws, f"M{r}", "=CX_DISCLOSED_2025", F_LINK, NUM0)
+        put(ws, f"N{r}", f"=100*(M{r}*(1-L{r})+(1-TAX_KSA)*OPEX*J{r})/((1-TAX_KSA)*D{r}*H{r})", fmt=CENTS, fill=FILL_OUT)
+    parity = f_top + len(calc) - 1
+    bk.name("R7_PARITY", f"Forecast!$N${parity}")
+    s_top = parity + 3
+    put(ws, f"A{s_top - 1}", "Forecast by site (USc/kWh)", bold=True)
+    header(ws, s_top, ["ID", "Project", "MWac", "Energy kWh/kWac", "Low", "Mid", "High"])
+    for i, t in enumerate(sites):
+        r, src = s_top + 1 + i, f_top + 3 * i
+        put(ws, f"A{r}", t["id"])
+        put(ws, f"B{r}", t["project"])
+        put(ws, f"C{r}", f"=C{src}", fmt=NUM0)
+        put(ws, f"D{r}", f"=D{src}", fmt=NUM0)
+        for j, c in enumerate("EFG"):
+            put(ws, f"{c}{r}", f"=N{src + j}", fmt=CENTS, fill=FILL_OUT)
+    s_bot = s_top + len(sites)
+    bk.name("R7_TABLE", f"Forecast!$A${s_top + 1}:$G${s_bot}")
+    put(ws, f"A{s_bot + 1}", "Round 7, weighted by MW")
+    for c in "EFG":
+        put(ws, f"{c}{s_bot + 1}", f"=SUMPRODUCT($C${s_top + 1}:$C${s_bot},{c}{s_top + 1}:{c}{s_bot})/SUM($C${s_top + 1}:$C${s_bot})",
+            fmt=CENTS, fill=FILL_OUT)
+    bk.name("R7_MID_AVG", f"Forecast!$F${s_bot + 1}")
+    bk.name("R7_LO_MIN", f"Forecast!$E${s_bot + 2}")
+    bk.name("R7_HI_MAX", f"Forecast!$G${s_bot + 2}")
+    put(ws, f"A{s_bot + 2}", "Lowest and highest site forecast")
+    put(ws, f"E{s_bot + 2}", f"=MIN(E{s_top + 1}:E{s_bot})", fmt=CENTS)
+    put(ws, f"G{s_bot + 2}", f"=MAX(G{s_top + 1}:G{s_bot})", fmt=CENTS)
+
     # Checks -----------------------------------------------------------
     ws = bk.sheet("Checks", "Model checks", "All must be TRUE. The Cover shows the combined result.",
                   widths=[60, 14, 10] + [7] * 36)
@@ -888,6 +958,7 @@ def build(out=OUT):
         (17, "=ABS(VC_TOTAL-INDEX(Engine!$U:$U,MATCH(\"NAJRAN\",Engine!$A:$A,0)))<0.000001"),
         (18, ("=SUMPRODUCT(--ISERROR(Impact!A4:D30))+SUMPRODUCT(--ISERROR(Value_chain!A4:H60))"
              "+SUMPRODUCT(--ISERROR(Changes!A4:E40))=0")),
+        (19, "=ABS(R7_PARITY-T_NAJRAN)<0.000001"),
     ]
     labels = {6: "Sensitivity base equals Engine required tariff for Najran",
               7: "Bridge start reproduces IRENA's USD 44/MWh", 8: "Bridge end reproduces Najran's real-equivalent tariff",
@@ -895,14 +966,15 @@ def build(out=OUT):
               11: "Oman bridge starts at the KSA hurdle tariff", 12: "PF debt fully repaid by end of tenor",
               13: "PF minimum DSCR respects the covenant", 14: "PF gearing within the cap",
               15: "Every analysed tracker row has a tariff", 16: "No errors on Engine and Engine_CF",
-              17: "Value-chain stack sums to Najran's required tariff", 18: "No errors on Impact, Value_chain, Changes"}
+              17: "Value-chain stack sums to Najran's required tariff", 18: "No errors on Impact, Value_chain, Changes",
+              19: "Forecast at Najran's yield and return reproduces Najran's tariff"}
     for rr, f in checks:
         if rr != 5:
             put(ws, f"A{rr}", labels[rr])
         put(ws, f"C{rr}", f, fill=FILL_OUT)
-    put(ws, "A20", "All checks pass", bold=True)
-    put(ws, "C20", "=AND(C5:C18)", fill=FILL_OUT, bold=True)
-    bk.name("ALL_CHECKS", "Checks!$C$20")
+    put(ws, "A21", "All checks pass", bold=True)
+    put(ws, "C21", "=AND(C5:C19)", fill=FILL_OUT, bold=True)
+    bk.name("ALL_CHECKS", "Checks!$C$21")
 
     # Sources and Log --------------------------------------------------
     ws = bk.sheet("Sources", "Source register", "Accessed dates are when the figure was checked.",
@@ -950,6 +1022,8 @@ def build(out=OUT):
         ("Oil displaced by operating Saudi solar (kb/d)", "=IMP_OP_KBD", NUM0),
         ("Value of that oil vs tariff paid (x)", "=IMP_OP_RATIO", "0.0x"),
         ("Najran cost before financing and tax (USc/kWh)", "=VC_PRE_FIN", CENTS),
+        ("Oman gas price at which solar matches gas, case 1 (USD/MMBtu)", "=OMN_BE_GAS1", "0.00"),
+        ("Round 7 forecast at Round 6 average returns, MW-weighted (USc/kWh)", "=R7_MID_AVG", CENTS),
         ("All model checks pass", "=ALL_CHECKS", None),
     ]
     for i, (label, f, fmt) in enumerate(key):
