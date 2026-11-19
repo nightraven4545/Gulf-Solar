@@ -5,8 +5,12 @@ An outside-in case on public data. A Gulf utility (Oman's single buyer, Nama PWP
 ## The answer
 
 - **The record is real, but a tariff is not a cost.** Masdar won Najran (1.4 GW, October 2025) at 1.09682 ¢/kWh. Restated as a constant real price that is 0.86 ¢. IRENA's own 2025 average cost for Saudi solar is 4.0 ¢ and its global average is 4.4 ¢.
+- **Saudi Arabia gets a bargain.** The 17.8 GW of solar now running frees about 208 kb/d of crude, 47% of 2025 direct burn. At a USD 86 Brent that oil is worth USD 6.3bn a year, against USD 0.74bn of tariffs: 8.5 dollars of oil for every dollar paid.
 - **About 60% of the gap is sunshine and cost, about a third is the return sponsors accept.** At the 2025 disclosed cost of USD 510/kWac, Najran returns 1.1% a year before leverage, below a 5.25% cost of debt. Bridging IRENA's USD 44/MWh to Najran's USD 8.6 (real), energy yield explains USD 12, accepted return 12, capex 9 and O&M 3.
-- **Oman can copy the design, not the returns, and still beat gas.** At commercial returns a 500 MW plant at Ibri needs about 2.35 ¢. Credit support, GW-scale tenders and 25-year PPAs bring that to about 1.83 ¢. Both sit below the 2.9 ¢ fuel cost of gas-fired power at Oman's regulated gas price, and well below the 5.5 ¢ value of that gas exported as LNG.
+- **The bid barely covers the cost of building and running the plant.** Najran costs about 1.00 ¢ before any return. The 1.10 ¢ bid leaves 0.09 ¢ for lenders, equity and tax, against 0.65 ¢ at a commercial hurdle. Even a 35-year life at a 3% WACC supports only USD 476/kWac, so the true build cost must be lower than disclosed or the sponsor earns elsewhere.
+- **Oman can copy the design, not the returns, and still beat gas.** At commercial returns a 500 MW plant at Ibri needs about 2.35 ¢. Credit support, GW-scale tenders and 25-year PPAs bring that to about 1.83 ¢, worth about USD 122m a year on the solar in Nama PWP's 2031 plan. Both sit below the 2.9 ¢ fuel cost of gas-fired power at Oman's regulated gas price, and well below the 5.5 ¢ value of that gas exported as LNG.
+
+![Tracked solar yield across Saudi Arabia and Oman, with awarded projects](docs/map.png)
 
 ![Bridge from IRENA's global average to Najran](docs/waterfall.png)
 
@@ -14,33 +18,38 @@ An outside-in case on public data. A Gulf utility (Oman's single buyer, Nama PWP
 
 | Path | What it is |
 |---|---|
-| `model/NREP_Tariff_LCOE_Model.xlsx` | The model. 14 tabs, live formulas, no macros. Start on the Cover tab |
-| `deck/NREP_Tariff_Replicability.pptx` and `.pdf` | 14 slides plus appendix; every number is read from the model |
+| `model/NREP_Tariff_LCOE_Model.xlsx` | The model. 17 tabs, live formulas, no macros. Start on the Cover tab |
+| `deck/NREP_Tariff_Replicability.pptx` and `.pdf` | 27 slides: 21 in three sections (what Saudi Arabia built, what the bids imply, what Oman can copy) plus a 6-slide appendix. Every number is read from the model |
 | `onepager/NREP_onepager.pdf` | One-page summary |
 | `docs/model-guide.md` | Tab-by-tab and formula-by-formula walkthrough, with a worked Najran example |
-| `data/tracker.csv` | 37 projects: Saudi PV awards of 200 MW and above since 2018 from both buying tracks, plus UAE, Qatar and Oman comparators |
+| `docs/map.png` | Resource map: PVGIS tracked yield on a 1° grid with awarded projects |
+| `data/tracker.csv` | 37 projects: Saudi PV awards of 200 MW and above since 2018 from both buying tracks, with lead sponsor, plus UAE, Qatar and Oman comparators |
 | `data/capex_evidence.csv` | Disclosed project costs from ACWA Power and Masdar filings |
-| `data/assumptions.csv` | 47 inputs, each tagged Reported, Derived or Assumed, with a low and high value and a source |
-| `data/sources.csv` | 39 sources with URLs and access dates |
-| `data/yield.csv`, `data/raw/` | PVGIS site yields and the raw API responses they came from |
-| `src/nrep/` | Python that fetches public data, builds the workbook and deck, and checks them |
-| `tests/` | 21 tests, including a check that every workbook output matches an independent calculation |
+| `data/assumptions.csv` | 70 inputs, each tagged Reported, Derived or Assumed, with a low and high value and a source |
+| `data/sources.csv` | 55 sources with URLs and access dates |
+| `data/milestones.csv`, `data/value_chain.csv`, `data/rates.csv` | Project milestones, named value-chain participants, US 10-year rates |
+| `data/yield.csv`, `data/yield_grid.csv`, `data/raw/` | PVGIS site and grid yields and the raw API responses they came from |
+| `src/nrep/` | Python that fetches public data, builds the workbook, map and deck, and checks them |
+| `tests/` | 23 tests, including a check that every workbook output matches an independent calculation |
 
 ## Method
 
 1. **Tariffs.** Each award is taken from the buyer's announcement as reported by the trade press or the winning developer, in US cents and, where published, halalas. Tariffs that sources disagree on, or that were never published, stay in the tracker but out of the analysis.
-2. **Sunshine.** PVGIS 5.3 gives the yield of a single-axis tracker at each site. One factor converts that to delivered AC energy per kWac. It is calibrated on Sakaka, a 300 MWac tracker plant whose 2022 output (932 GWh) GASTAT publishes.
+2. **Sunshine.** PVGIS 5.3 gives the yield of a single-axis tracker at each site and on a 1° grid for the map. One factor converts that to delivered AC energy per kWac. It is calibrated on Sakaka, a 300 MWac tracker plant whose 2022 output (932 GWh) GASTAT publishes.
 3. **Cost.** Four views of capex: disclosed total investment per project (ACWA Power's FY2025 investor report, Masdar), IRENA's 2025 Saudi figure, a bottom-up build at October 2026 module prices, and the capex each tariff implies.
 4. **Engine.** A closed-form after-tax levelised cost for every award gives the capex at which the tariff earns a 5.8% hurdle WACC, the project return at the disclosed cost, and the real-equivalent tariff. A single-asset project finance model adds sculpted debt and equity returns.
 5. **Attribution.** A Shapley decomposition splits the gap between IRENA's global average and Najran across energy, capex, O&M and return. It averages each driver's effect over every order of change, so no ordering choice is hidden.
-6. **Oman.** The same engine runs on Ibri's yield, Oman's disclosed Ibri III cost and financing adjusted for Oman's sovereign risk (Damodaran, January 2026). A second Shapley split separates what Oman inherits from what its tender design controls.
+6. **Value chain.** Najran's required tariff is split into hardware, EPC and fees, O&M, return on capital and tax, each with named participants. A grid of plant life against WACC shows what has to be true for the bid to reach the disclosed cost.
+7. **Impact.** Solar output, the heat rate of the oil plant it displaces and the energy in a barrel give crude freed, its value at World Bank Brent prices and the CO2 avoided, set against the tariffs paid.
+8. **Oman.** The same engine runs on Ibri's yield, Oman's disclosed Ibri III cost and financing adjusted for Oman's sovereign risk (Damodaran, January 2026). A second Shapley split separates what Oman inherits from what its tender design controls, and Nama PWP's 2031 solar plan turns each cent saved into dollars a year.
 
 ## Limits
 
 - Yield rests on one calibration plant from 2020. Newer bifacial plants at higher DC/AC ratios probably produce more, which would raise the capex each tariff supports by about USD 40/kWac for every 10% of extra energy.
 - Disclosed "total investment cost" may include development fees and EPC margins paid to sponsor affiliates. If so, the true build cost is lower and part of the sponsors' return sits outside the project company.
-- No value is given to output after the 25-year PPA.
+- No value is given to output after the 25-year PPA, except in the what-has-to-be-true grid, which assumes the PPA is extended at the same tariff.
 - Debt margin, O&M cost and equity hurdle are assumptions with ranges; no public source gives them for Saudi solar.
+- Oil displacement rests on one heat rate and an assumed 80% share of solar output displacing liquids. A saved barrel is valued at export prices; with Hormuz shut in 2026, that depends on room on the Red Sea route.
 - Nama PWP does not publish its solar tariffs, so the Oman figures are estimates, not a back-test.
 - Round 7 (3.1 GW) bids are in but unannounced as of 18 November 2026.
 
@@ -49,10 +58,10 @@ An outside-in case on public data. A Gulf utility (Oman's single buyer, Nama PWP
 Needs Python 3.12+ with `uv`, and LibreOffice for recalculation and PDF export.
 
 ```
-make data     # pull PVGIS yields (and KAPSARC's project list) into data/
+make data     # pull PVGIS site and grid yields (and KAPSARC's project list) into data/
 make model    # build the workbook and recalculate it
-make deck     # build the deck and one-pager from the recalculated workbook
+make deck     # draw the map, then build the deck and one-pager from the recalculated workbook
 make check    # lint and tests
 ```
 
-Code is MIT licensed. Data files are compiled from the public sources listed in `data/sources.csv`; cite those sources when reusing figures.
+Code is MIT licensed. Data files are compiled from the public sources listed in `data/sources.csv`; cite those sources when reusing figures. Country borders on the map are from Natural Earth (public domain).

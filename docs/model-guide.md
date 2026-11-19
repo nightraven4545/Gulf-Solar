@@ -12,7 +12,7 @@ Saudi Arabia buys solar power at 1.1 to 1.5 US cents per kWh. IRENA puts the 202
 
 ## 2. Tab order and flow
 
-`Inputs` → `Tracker` and `Yield` → `Engine` (with `Engine_CF`) → `Sensitivity`, `Bridge`, `Oman`. `Capex` collects cost evidence. `PF_Model` is a levered view of one project. `Checks` ties the tabs together. `Cover` shows the headline numbers and the combined check.
+`Inputs` → `Tracker` and `Yield` → `Engine` (with `Engine_CF`) → `Sensitivity`, `Bridge`, `Oman` → `Impact`, `Value_chain`, `Changes`. `Capex` collects cost evidence. `PF_Model` is a levered view of one project. `Checks` ties the tabs together. `Cover` shows the headline numbers and the combined check.
 
 Colour code: blue text is an input or reported figure, green text is a link from another tab, black text is a calculation. Yellow fill marks an assumption with no direct source. Green fill marks an output.
 
@@ -120,14 +120,43 @@ The cases table then stacks the levers Nama PWP controls: credit support that gi
 
 Oman's real tariffs are not published, so these are estimates, not a back-test.
 
-## 10. Checks
+## 10. Impact
 
-Twelve tests, all of which must show TRUE: engine and cash-flow parity, sensitivity base equals the engine, both bridges reconcile and sum, the PF debt is repaid and respects its covenants, every analysed tariff is present, and no error values on the engine tabs. `Cover` shows the combined result.
+This tab answers why Saudi Arabia accepts the deal. Each MWh of solar lets an oil-fired plant burn less, and the crude it would have burned can be exported.
 
-## 11. Known limits
+- Output: GW × average Saudi energy per kWac (3,092 kWh) gives 55.0 TWh a year for the 17.8 GW running in August 2026 (KAPSARC) and 106.5 TWh for the 34.45 GW of utility PV contracted.
+- Oil displaced: TWh × heat rate (10 MMBtu/MWh) / 5.8 MMBtu per barrel × the share of solar output that displaces liquids (80%, assumed). For the fleet running now that is 75.9 million barrels a year, or 208 kb/d, 47% of 2025 direct crude burn (440 kb/d).
+- Value: barrels × (Brent USD 86 less a USD 3 discount) = USD 6.3bn a year; USD 8.5bn at the World Bank's severe case of USD 115.
+- Cost: TWh × the MW-weighted Saudi tariff (1.344 cents) = USD 0.74bn. Every dollar of tariff frees 8.5 dollars of oil.
+- CO2: barrels × 0.43 t = 32.6 Mt a year.
+
+The Oman block takes solar output from Nama PWP's 7-Year Statement (16.2 TWh in 2030, 23.3 TWh in 2031) and multiplies by the CCGT heat rate (7.0 MMBtu/MWh) to get gas saved. At the regulated gas price that is worth USD 676m in 2031; at the LNG netback, USD 1,273m. The rule of thumb behind the moves row: 0.1 cent on 1 TWh is USD 1m. Moves 1 to 3 (2.35 to 1.83 cents) on 23.3 TWh are worth about USD 122m a year.
+
+## 11. Value_chain
+
+Three blocks.
+
+The cost stack splits Najran's required tariff at base capex (1.65 cents) into who earns it. Lifetime energy is the degraded output over 25 years (77,326 kWh/kWac) and lifetime O&M is USD 256/kWac. Capex (USD 520) is split by the bottom-up shares on `Capex`, so modules are 0.19 cents, trackers 0.12, inverters 0.05, balance of system and freight 0.14, EPC and fees 0.16, and O&M 0.33. Together these give the cost before any return: 1.00 cents, undiscounted. The return on capital (0.58) is the pre-tax tariff at the hurdle WACC less that cost, and tax (0.07) is the required tariff less the pre-tax one. The stack sums to the Engine's required tariff, which Check 17 tests. Najran's 1.10-cent bid leaves 0.09 cents for capital and tax.
+
+The what-has-to-be-true grid recomputes the capex Najran's tariff supports for lives of 25, 30 and 35 years and WACCs from 3% to 7%. The best cell, 35 years at 3%, supports USD 476/kWac. Cells that reach the USD 510 disclosed cost turn green; none do. Lives beyond 25 years assume the PPA is extended at the same tariff.
+
+The timeline lists dated milestones for Sakaka, Sudair, Al Sadawi, Najran and Ibri III, with a month index (`=VALUE(LEFT(D,4))*12+VALUE(MID(D,6,2))`) and months since each project's first milestone (`MINIFS`).
+
+## 12. Changes and the sponsor league
+
+`Changes` lays out 2018 to 2026 by year: the US 10-year Treasury average (FRED, a proxy for SAR swap rates under the peg), the average Saudi PV tariff awarded (`AVERAGEIFS` on `Engine`), the average disclosed cost by vintage and the number of awards. Rates rose from 1.45% in 2021 to 4.29% in 2025 while disclosed cost fell from USD 722 to 510/kWac. Using the Sensitivity slopes at Najran's site, the rate rise is worth about +0.25 cents and the cost fall about −0.55 cents. Below sit the delivery block (19.3 GW installed, 23.9 under development, 20.6 tendered, against a 130 GW target and a 74.2 GW forecast, so a 55.8 GW gap) and the storage block (battery rounds of 8 and 12 GWh, a 48 GWh target, firm solar-plus-storage at USD 54 to 82/MWh).
+
+The sponsor league sits at the foot of `Tracker`. A lead sponsor column names each consortium's leader; `SUMIFS` adds MW and MW × tariff over analysed awards, which gives each sponsor's GW and MW-weighted tariff. ACWA Power has 25.35 GW at 1.311 cents, Masdar 5.4 GW at 1.331, against 1.344 for the whole programme.
+
+## 13. Checks
+
+Fourteen tests, all of which must show TRUE: engine and cash-flow parity, sensitivity base equals the engine, both bridges reconcile and sum, the PF debt is repaid and respects its covenants, every analysed tariff is present, the value-chain stack sums to the required tariff, and there are no error values on the engine, impact, value-chain and changes tabs. `Cover` shows the combined result.
+
+## 14. Known limits
 
 - One calibration plant for yield. Newer plants with higher DC/AC ratios and bifacial gain probably do better, which would raise implied capex.
 - No merchant tail after the PPA. Extra years of output after year 25 would raise returns at low discount rates.
 - Disclosed "total investment cost" may include development fees and EPC margins paid to sponsor affiliates. If so, the true build cost is lower than USD 510, and part of the return sits outside the project company.
 - Tax is a single blended rate. The real mix of 20% corporate tax and 2.5% Zakat depends on each consortium's ownership.
 - Debt margin, O&M and equity hurdle are assumptions with ranges, not observed terms.
+- Oil displacement rests on one heat rate and an assumed liquids share of 80%. At 50% the barrels and their value fall by three-eighths. A saved barrel is valued at export prices; with Hormuz shut in 2026, that depends on room on the Red Sea route.
