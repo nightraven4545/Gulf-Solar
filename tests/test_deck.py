@@ -11,7 +11,7 @@ def text_of(path):
 
 def test_deck_builds_with_no_missing_numbers(tmp_path):
     slides = text_of(build(tmp_path / "d.pptx"))
-    assert len(slides) == 27
+    assert len(slides) == 28
     for i, t in enumerate(slides, start=1):
         assert not re.search(r"\bNone\b|\bnan\b", t), i
 

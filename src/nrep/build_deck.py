@@ -289,6 +289,11 @@ def build(path=DECK):
     y_by = {r["ID"]: r["PVGIS yield kWh/kWp-yr"] for r in m.table("Yield", 4)}
     tor_map = {r[0]: r for r in m.rows("TORNADO")}
     moves_m = m["OMN_IMP_MOVES_2031"]
+    omn_pv = [r for r in tr if r["Country"] == "Oman" and r["Tech"] in ("PV", "PV+BESS")]
+    omn_leads = [r["Lead sponsor"] for r in sorted(omn_pv, key=lambda r: str(r["Date"]))]
+    omn_mw = [r["MWac"] for r in omn_pv]
+    omn_ppa = [int(r["PPA yrs"]) for r in omn_pv if r["PPA yrs"]]
+    omn_first = min(str(r["Date"])[:4] for r in omn_pv)
     sec_a, sec_b, sec_c = ("A  What Saudi Arabia built, and what it is worth", "B  What the bids imply",
                            "C  What Oman can copy")
 
@@ -393,7 +398,8 @@ def build(path=DECK):
         ((f"Oman's best cells, in the Dhofar interior ({cells['OMN'][-1]:,.0f}), match Najran but sit far from northern "
          f"demand; Ibri ({y_by['IBRI3']:,.0f}) beats only {beats(y_by['IBRI3'], 'OMN'):.0%} of Oman's cells"),
          {"bullet": True}),
-        ("Bubbles are awarded PV plants sized by capacity; labels give the tariff in ¢/kWh", {"bullet": True}),
+        (("Bubbles are awarded PV plants sized by capacity; hollow rings are Round 7 sites with bids in; labels "
+          "give the tariff in ¢/kWh"), {"bullet": True}),
     ], size=14)
 
     # Tariff history -------------------------------------------------------
@@ -902,7 +908,8 @@ def build(path=DECK):
     s = d.slide(f"ACWA Power leads {lead['ACWA Power'][1]:.0f} GW, {lead['ACWA Power'][1] / tot_gw:.0%} of Saudi utility "
                 f"PV awards; Masdar has won {lead['Masdar'][1]:.1f} GW since {msd_since}, and the two price lowest",
                 "Source: model Tracker tab sponsor league (SUMIFS on lead sponsor over analysed awards; S01-S43). Lead "
-                "sponsor = consortium leader; projects in brackets. Tariff is MW-weighted over awards with a disclosed tariff",
+                "sponsor = consortium leader; projects in brackets. Tariff is MW-weighted over awards with a disclosed tariff. Oman "
+                "IPPs: S25, S60, S62, S64",
                 notes="Bidder appetite is the part of the Saudi result Oman cannot design. The sponsors that bid lowest are "
                       "state-linked and strategic.",
                 section=sec_b)
@@ -926,9 +933,44 @@ def build(path=DECK):
          f"(Masdar), against {avg_t:.2f} ¢ for the programme"), {"bullet": True}),
         (("Both are state-linked: PIF is ACWA Power's largest shareholder, and Masdar is owned by Abu Dhabi state "
           "companies"), {"bullet": True}),
-        ("Masdar already leads Ibri III, so Oman has one of the two in its bidder pool", {"bullet": True}),
-        ("Move 4 for Oman depends on drawing both into GW-scale rounds", {"bullet": True}),
+        (f"Oman has already drawn both: its four solar IPPs went to {', '.join(omn_leads)}", {"bullet": True}),
+        ("The question for move 4 is whether bigger rounds make them bid as low in Oman as they do here",
+         {"bullet": True}),
     ], size=14)
+
+    # Round 7 forecast -------------------------------------------------------
+    r7 = [r for r in m.rows("R7_TABLE") if r[0]]
+    r6_t = [r["Tariff USc/kWh"] for r in eng if r["Round"] == "R6"]
+    best = min(r7, key=lambda r: r[5])
+    s = d.slide(f"If Round 7 bidders accept Round 6 returns, the four sites should clear at {m['R7_LO_MIN']:.2f} to "
+                f"{m['R7_HI_MAX']:.2f} ¢, most likely near {m['R7_MID_AVG']:.2f} ¢",
+                f"Source: model Forecast tab. Engine closed form at the 2025 disclosed cost (USD {disc25:.0f}/kWac) and each "
+                "site's PVGIS yield; returns are the project IRRs Round 6 winners accepted. Sites from S66; bids closed 13 "
+                "September 2026 (S67). Forecast made 19 November 2026",
+                notes="This is the one slide that can be proved wrong. If the awards land above the range, costs rose or "
+                      "appetite fell; below it, sponsors accepted less than they did at Najran.",
+                section=sec_b)
+    cats = [f"{r[1]} ({r[2] / 1000:.1f} GW)" for r in r7] + ["Round 6 awards, for reference"]
+    lows, highs = [r[4] for r in r7] + [min(r6_t)], [r[6] for r in r7] + [max(r6_t)]
+    labs = [f"{r[4]:.2f}-{r[6]:.2f}, mid {r[5]:.2f}" for r in r7] + [f"{min(r6_t):.2f}-{max(r6_t):.2f} actual"]
+    floating(s, cats, lows, highs, [AMBER] * len(r7) + [GREY], 0.5, 1.5, 7.8, 4.6, '0.0"¢"', 0.9, 1.6, labels=labs,
+             gap=55, label_color=[WHITE] * len(r7) + [INK], unit=0.1)
+    text(s, 0.5, 6.2, 7.8, 0.6, [("Bars run from Najran's return (left end) to the highest Round 6 return (right "
+                                  "end); mid is the Round 6 average.")], size=12, color=TEXT2)
+    text(s, 8.7, 1.6, 4.1, 3.6, [
+        ("How the forecast works", {"bold": True}),
+        (f"Each site's PVGIS yield, at the 2025 disclosed cost of USD {disc25:.0f}/kWac", {"bullet": True}),
+        ((f"Returns as accepted in Round 6: {m['R7_RATE_LO']:.1%} (Najran), {m['R7_RATE_MID']:.1%} (MW-weighted "
+         f"average) and {m['R7_RATE_HI']:.1%} (highest)"), {"bullet": True}),
+        ((f"{best[1]} has the best sunshine of the four ({best[3]:,.0f} kWh/kWac) and should price lowest; "
+         "Tabarjal II matches Najran's 1.4 GW"), {"bullet": True}),
+    ], size=14)
+    shp = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.7), Inches(5.6), Inches(4.1), Inches(1.0))
+    shp.fill.solid()
+    shp.fill.fore_color.rgb = AMBER_PALE
+    shp.line.fill.background()
+    text(s, 8.85, 5.7, 3.8, 0.85, [("A test the model can fail: made 19 November 2026, before any Round 7 award",
+                                    {"bold": True})], size=14)
 
     # Oman bridge ----------------------------------------------------------
     o_start, o_end = ob["KSA at hurdle returns"], ob["Oman at hurdle returns"]
@@ -995,6 +1037,8 @@ def build(path=DECK):
         ("Oman does not need Saudi's tariff for solar to be the cheapest new energy", {"bullet": True}),
         (f"Cases 2 and 3 are design choices worth {cases[0] - cases[2]:.2f} ¢ together", {"bullet": True}),
         ("Case 4 depends on who bids, not on what Nama PWP designs", {"bullet": True}),
+        ((f"Solar beats gas while gas costs more than USD {m['OMN_BE_GAS1']:.1f}/MMBtu, or {m['OMN_BE_GAS3']:.1f} "
+         f"with cases 2 and 3; the assumed price is {m['OMN_GAS']:.2f}"), {"bullet": True}),
     ], size=14)
 
     # Four moves -----------------------------------------------------------
@@ -1003,7 +1047,8 @@ def build(path=DECK):
     s = d.slide(f"Four moves for Nama PWP, in order of what it controls; the first three are worth about USD "
                 f"{moves_m:.0f}m a year on the solar in its 2031 plan",
                 "Source: model Oman and Impact tabs (case steps and Shapley effects); 2031 solar output from Nama PWP's "
-                "7-Year Statement 2025-2031 (S55); Saudi precedents from the Tracker tab and ACWA Power (S43)",
+                "7-Year Statement 2025-2031 (S55); precedents and Oman's record from the Tracker tab (S43, S25, S60-S65); "
+                "sovereign ratings from Damodaran (S22)",
                 notes="Impacts are from the Oman tab and are not additive with each other beyond case 3. Dollar values "
                       "apply each saving to 2031 solar output.", section=sec_c)
     moves = [("1. Credit support for the buyer", "Debt and equity priced nearer Saudi terms", cases[0] - cases[1],
@@ -1014,12 +1059,15 @@ def build(path=DECK):
               "SPPC 25 years; three PIF projects at 35"),
              ("4. Widen the bidder pool", "Lets strategic sponsors price below commercial returns", cases[2] - cases[3],
               "Masdar, ACWA, EDF, KEPCO, SPIC, Jinko Power")]
-    rows = [["Move", "What it changes", "Effect on tariff", "USD m a year, 2031", "Saudi precedent"]]
+    so_far = ["Buyer backed by a Baa3 sovereign; Saudi Arabia is Aa3",
+              f"{len(omn_pv)} projects of {min(omn_mw):.0f} MW each since {omn_first}",
+              f"PPAs of {min(omn_ppa)} to {max(omn_ppa)} years", ", ".join(omn_leads)]
+    rows = [["Move", "What it changes", "Effect on tariff", "USD m a year, 2031", "Saudi precedent", "Oman so far"]]
     for i, (mv, what, c_, prec) in enumerate(moves):
         up = "up to " if i == 3 else ""
-        rows.append([mv, what, f"{up}-{c_:.2f} ¢", f"{up}{usd(c_)}", prec])
-    table(s, rows, 0.5, 1.6, 12.3, [2.9, 3.4, 1.7, 1.6, 2.7], size=14, row_h=0.72)
-    text(s, 0.5, 5.4, 12.3, 1.35, [
+        rows.append([mv, what, f"{up}-{c_:.2f} ¢", f"{up}{usd(c_)}", prec, so_far[i]])
+    table(s, rows, 0.5, 1.5, 12.3, [2.35, 2.45, 1.3, 1.3, 2.45, 2.45], size=12, row_h=0.72)
+    text(s, 0.5, 5.55, 12.3, 1.25, [
         ((f"Moves 1 to 3 are in Nama PWP's hands and together take Oman from {cents(cases[0])} to {cents(cases[2])}. "
          f"On the {twh31:.0f} TWh of solar in its 2031 plan, every 0.1 ¢ is worth USD {per01:.0f}m a year. The gas that "
          f"solar saves is worth USD {m['OMN_IMP_GAS_2031']:.0f}m a year at the regulated price and "
@@ -1037,7 +1085,8 @@ def build(path=DECK):
         (f"True build cost: disclosed 'total investment' may include sponsor fees; a USD {m['CAPEX_LO']:.0f} build cost "
         f"cuts Najran's required tariff to {tor_map['CAPEX'][1]:.2f} ¢"),
         "Life after the PPA: a merchant tail beyond year 25 raises returns",
-        "Oman gas price: the 2015 regulated price escalated; the current figure is not published",
+        (f"Oman gas price: not published, but solar still wins above USD {m['OMN_BE_GAS1']:.1f}/MMBtu, against "
+         f"{m['OMN_GAS']:.2f} assumed"),
     ])
     card(s, 6.8, 1.6, 6.0, 3.9, "What I would do with paid data", [
         "IJGlobal or Proximo deal sheets for debt margins, tenors and DSCRs on Saudi solar closes",
@@ -1171,13 +1220,14 @@ def build(path=DECK):
     cited |= {x for r in tr if r["In analysis"] == "Y" for x in r["Sources"].split(";")}
     cited |= {r[8] for r in m.wb["Capex"].iter_rows(min_row=5, max_row=18, values_only=True) if r[8]}
     cited = sorted(cited)
-    per = 16
+    pages = -(-len(cited) // 17)  # at most 17 rows a page, split evenly
+    per = -(-len(cited) // pages)
     chunks = [cited[i:i + per] for i in range(0, len(cited), per)]
     for part, chunk in enumerate(chunks, start=1):
         s = d.slide(f"Appendix: sources behind this deck ({part} of {len(chunks)})",
                     "Full register with URLs and access dates: model Sources tab", tag=False)
         rows = [["ID", "Publisher", "Title", "Date"]] + [[c, srcs[c][1], srcs[c][2], srcs[c][3]] for c in chunk]
-        table(s, rows, 0.5, 1.4, 12.3, [0.6, 2.7, 7.9, 1.1], size=11, row_h=0.31)
+        table(s, rows, 0.5, 1.4, 12.3, [0.6, 2.7, 7.9, 1.1], size=11, row_h=0.3)
 
     path.parent.mkdir(parents=True, exist_ok=True)
     d.prs.save(path)

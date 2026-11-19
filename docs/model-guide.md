@@ -12,7 +12,7 @@ Saudi Arabia buys solar power at 1.1 to 1.5 US cents per kWh. IRENA puts the 202
 
 ## 2. Tab order and flow
 
-`Inputs` → `Tracker` and `Yield` → `Engine` (with `Engine_CF`) → `Sensitivity`, `Bridge`, `Oman` → `Impact`, `Value_chain`, `Changes`. `Capex` collects cost evidence. `PF_Model` is a levered view of one project. `Checks` ties the tabs together. `Cover` shows the headline numbers and the combined check.
+`Inputs` → `Tracker` and `Yield` → `Engine` (with `Engine_CF`) → `Sensitivity`, `Bridge`, `Oman` → `Impact`, `Value_chain`, `Changes`, `Forecast`. `Capex` collects cost evidence. `PF_Model` is a levered view of one project. `Checks` ties the tabs together. `Cover` shows the headline numbers and the combined check.
 
 Colour code: blue text is an input or reported figure, green text is a link from another tab, black text is a calculation. Yellow fill marks an assumption with no direct source. Green fill marks an output.
 
@@ -118,7 +118,9 @@ Same engine, two columns: a Najran-quality Saudi site at the Saudi hurdle (1.65 
 
 The cases table then stacks the levers Nama PWP controls: credit support that gives Saudi-grade financing (2.13), a GW-scale tender with a 25-year PPA (1.83), and a sponsor willing to take Najran's return (1.23). The avoided-cost rows put fuel for a gas plant at 2.9 cents at the regulated gas price and 5.5 cents at the LNG export netback.
 
-Oman's real tariffs are not published, so these are estimates, not a back-test.
+Two rows below the avoided costs turn the unknown gas price into a threshold. Dividing each case's tariff by the CCGT heat rate (7.0 MMBtu/MWh) gives the gas price at which solar and gas fuel cost the same: USD 3.36/MMBtu for case 1 and USD 2.62 for case 3. Oman's 2015 regulated price escalated to 2026 is USD 4.15, so solar wins with room to spare even before the design moves.
+
+Oman's real tariffs are not published, so these are estimates, not a back-test. The tracker does record what Oman has bought: Ibri II (ACWA Power, 2019, 15-year PPA, USD 400m), Manah I (EDF and KOWEPO, 2023, 20 years, USD 459m), Manah II (Sembcorp and Jinko Power, 2023, 20 years) and Ibri III (Masdar, 2025, with batteries). All four are 500 MW.
 
 ## 10. Impact
 
@@ -148,11 +150,22 @@ The timeline lists dated milestones for Sakaka, Sudair, Al Sadawi, Najran and Ib
 
 The sponsor league sits at the foot of `Tracker`. A lead sponsor column names each consortium's leader; `SUMIFS` adds MW and MW × tariff over analysed awards, which gives each sponsor's GW and MW-weighted tariff. ACWA Power has 25.35 GW at 1.311 cents, Masdar 5.4 GW at 1.331, against 1.344 for the whole programme.
 
-## 13. Checks
+## 13. Forecast (Round 7)
 
-Fourteen tests, all of which must show TRUE: engine and cash-flow parity, sensitivity base equals the engine, both bridges reconcile and sum, the PF debt is repaid and respects its covenants, every analysed tariff is present, the value-chain stack sums to the required tariff, and there are no error values on the engine, impact, value-chain and changes tabs. `Cover` shows the combined result.
+The four Round 7 PV sites (Tabarjal II, Mawqaq, Tathleeth, South Al Ula; 3.1 GW) have bids in but no award. `Forecast` asks what they clear at if the winners accept the returns Round 6 winners did.
 
-## 14. Known limits
+- Returns: Round 6 project IRRs at the 2025 disclosed cost, read from Engine column X. Low is Najran's (1.13%), mid is the MW-weighted average (`SUMPRODUCT` over the Round 6 rows, 2.17%), high is the largest (`MAXIFS`, 4.23%).
+- Tariff: the same closed form as Engine column U, with capex at the 2025 disclosed USD 510/kWac, each site's calibrated PVGIS energy and the return in place of the hurdle WACC.
+- Result: 1.11 to 1.14 cents at Najran's return, 1.22 to 1.25 at the Round 6 average and 1.45 to 1.49 at the highest; 1.23 cents weighted by MW. Tathleeth has the best sun of the four and prices lowest.
+- Parity: the last row runs the same formula at Najran's own energy and return, and must give back Najran's 1.09682 cents. Check 19 tests it.
+
+South Al Ula's site is not published. The town itself sits in terrain PVGIS shades (2,445 kWh/kWp), so the tracker uses open ground about 20 km south (2,584), flagged as approximate.
+
+## 14. Checks
+
+Fifteen tests, all of which must show TRUE: engine and cash-flow parity, sensitivity base equals the engine, both bridges reconcile and sum, the PF debt is repaid and respects its covenants, every analysed tariff is present, the value-chain stack sums to the required tariff, there are no error values on the engine, impact, value-chain and changes tabs, and the forecast formula reproduces Najran's tariff. `Cover` shows the combined result.
+
+## 15. Known limits
 
 - One calibration plant for yield. Newer plants with higher DC/AC ratios and bifacial gain probably do better, which would raise implied capex.
 - No merchant tail after the PPA. Extra years of output after year 25 would raise returns at low discount rates.
